@@ -1,0 +1,40 @@
+<view class="container">
+  <view class="header">
+    <text class="greeting">{{greeting}}</text>
+    <text class="date">{{today}}</text>
+  </view>
+
+  <view class="money-card">
+    <text class="money-label">今日已赚</text>
+    <text class="money-amount">¥{{earned}}</text>
+    <view class="progress-bar">
+      <view class="progress-fill" style="width: {{percentage}}%"></view>
+    </view>
+    <text class="progress-text">已完成 {{percentage}}%</text>
+  </view>
+
+  <view class="info-row">
+    <view class="info-item">
+      <text class="info-label">今日目标</text>
+      <text class="info-value">¥{{dailyTotal}}</text>
+    </view>
+    <view class="info-item">
+      <text class="info-label">每秒入账</text>
+      <text class="info-value">¥{{perSecond}}</text>
+    </view>
+  </view>
+
+  <view class="countdown-card {{isWorkTime ? '' : 'is-off-duty'}}">
+    <text class="countdown-label">{{countdownLabel}}</text>
+    <text class="countdown-time">{{countdown}}</text>
+    <text class="countdown-status">{{statusText}}</text>
+  </view>
+
+  <view class="error-tip" wx:if="{{error}}">
+    <text>⚠️ {{error}}</text>
+  </view>
+
+  <view class="fish-tip" bindtap="toggleFish">
+    <text>{{fishText}}</text>
+  </view>
+</view>

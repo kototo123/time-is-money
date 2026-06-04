@@ -1,0 +1,12 @@
+<view class="container">
+  <text class="page-title">每日收入记录</text>
+
+  <view class="summary-card">
+    <text class="summary-label">今日收入</text>
+    <text class="summary-amount">¥{{todayEarned}}</text>
+  </view>
+
+  <view class="record-list">
+    <view class="empty">暂无记录，快去摸鱼吧 🐟</view>
+  </view>
+</view>

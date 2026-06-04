@@ -1,0 +1,46 @@
+<view class="container">
+  <view class="section">
+    <text class="section-title">薪资设置</text>
+
+    <view class="form-group">
+      <text class="label">薪资类型</text>
+      <view class="radio-group">
+        <view class="radio-item {{salaryType === 'MONTHLY' ? 'active' : ''}}" data-type="MONTHLY" bindtap="setType">月薪</view>
+        <view class="radio-item {{salaryType === 'HOURLY' ? 'active' : ''}}" data-type="HOURLY" bindtap="setType">时薪</view>
+      </view>
+    </view>
+
+    <view class="form-group" wx:if="{{salaryType === 'MONTHLY'}}">
+      <text class="label">月薪 (元)</text>
+      <input class="input" type="digit" value="{{monthlySalary}}" bindinput="onInput" data-field="monthlySalary" placeholder="请输入月薪" />
+    </view>
+
+    <view class="form-group" wx:if="{{salaryType === 'HOURLY'}}">
+      <text class="label">时薪 (元)</text>
+      <input class="input" type="digit" value="{{hourlyRate}}" bindinput="onInput" data-field="hourlyRate" placeholder="请输入时薪" />
+    </view>
+
+    <view class="form-group">
+      <text class="label">每日工作小时数</text>
+      <input class="input" type="digit" value="{{dailyWorkHours}}" bindinput="onInput" data-field="dailyWorkHours" placeholder="默认8小时" />
+    </view>
+  </view>
+
+  <view class="section">
+    <text class="section-title">工作时间</text>
+    <view class="form-group">
+      <text class="label">上班时间</text>
+      <picker mode="time" value="{{workStartTime}}" bindchange="onTimeChange" data-field="workStartTime">
+        <view class="picker">{{workStartTime || '选择时间'}}</view>
+      </picker>
+    </view>
+    <view class="form-group">
+      <text class="label">下班时间</text>
+      <picker mode="time" value="{{workEndTime}}" bindchange="onTimeChange" data-field="workEndTime">
+        <view class="picker">{{workEndTime || '选择时间'}}</view>
+      </picker>
+    </view>
+  </view>
+
+  <button class="save-btn" bindtap="handleSave">保存设置</button>
+</view>

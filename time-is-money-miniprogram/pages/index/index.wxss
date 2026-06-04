@@ -1,0 +1,45 @@
+.container { padding: 30rpx; }
+.header { margin-bottom: 40rpx; }
+.greeting { font-size: 36rpx; font-weight: bold; display: block; margin-bottom: 8rpx; }
+.date { font-size: 26rpx; color: #8888aa; }
+.money-card {
+  background: linear-gradient(135deg, #1a1a2e, #16213e);
+  border-radius: 20rpx; padding: 40rpx; margin-bottom: 30rpx;
+  text-align: center; border: 1px solid rgba(0,212,255,0.2);
+}
+.money-label { font-size: 28rpx; color: #8888aa; }
+.money-amount {
+  font-size: 80rpx; font-weight: bold; color: #00d4ff;
+  display: block; margin: 20rpx 0; font-family: 'Courier New', monospace;
+}
+.progress-bar { height: 12rpx; background: #333; border-radius: 6rpx; overflow: hidden; margin-bottom: 16rpx; }
+.progress-fill { height: 100%; background: linear-gradient(90deg, #00d4ff, #0077ff); border-radius: 6rpx; }
+.progress-text { font-size: 24rpx; color: #8888aa; }
+.info-row { display: flex; gap: 20rpx; margin-bottom: 30rpx; }
+.info-item { flex: 1; background: #1a1a2e; border-radius: 16rpx; padding: 24rpx; text-align: center; }
+.info-label { font-size: 24rpx; color: #8888aa; display: block; margin-bottom: 8rpx; }
+.info-value { font-size: 36rpx; font-weight: bold; color: #ffd700; }
+.countdown-card {
+  background: #1a1a2e; border-radius: 20rpx; padding: 40rpx;
+  text-align: center; margin-bottom: 30rpx; border: 1px solid rgba(0,212,255,0.15);
+}
+.countdown-card.is-off-duty { border-color: rgba(255,215,0,0.3); }
+.countdown-label { font-size: 28rpx; color: #8888aa; display: block; margin-bottom: 16rpx; }
+.countdown-time {
+  font-size: 72rpx; font-weight: bold; font-family: 'Courier New', monospace;
+  color: #fff; display: block; margin-bottom: 16rpx; letter-spacing: 8rpx;
+}
+.is-off-duty .countdown-time { color: #ffd700; }
+.countdown-status { font-size: 28rpx; color: #00d4ff; }
+.is-off-duty .countdown-status { color: #ffd700; }
+.error-tip {
+  background: rgba(255, 0, 0, 0.1);
+  border: 1px solid rgba(255, 0, 0, 0.3);
+  border-radius: 16rpx;
+  padding: 20rpx;
+  text-align: center;
+  margin-bottom: 20rpx;
+  font-size: 24rpx;
+  color: #ff6b6b;
+}
+.fish-tip { text-align: center; padding: 20rpx; font-size: 28rpx; color: #8888aa; }
