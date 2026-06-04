@@ -1,7 +1,7 @@
 FROM maven:3.9-eclipse-temurin-21 AS build
 WORKDIR /app
-COPY pom.xml .
-COPY src ./src
+COPY time-is-money-backend/pom.xml .
+COPY time-is-money-backend/src ./src
 RUN mvn package -DskipTests
 
 FROM eclipse-temurin:21-jre
