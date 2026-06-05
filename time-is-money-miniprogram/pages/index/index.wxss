@@ -8,33 +8,9 @@
   text-align: center; border: 1px solid rgba(0,212,255,0.2);
 }
 .money-label { font-size: 28rpx; color: #8888aa; }
-.money-roll {
-  display: flex; justify-content: center; align-items: center;
-  margin: 20rpx 0; height: 100rpx;
-}
-.symbol { font-size: 48rpx; color: #00d4ff; font-weight: bold; margin-right: 8rpx; }
-.digit-box {
-  height: 100rpx; width: 56rpx; overflow: hidden;
-  display: inline-block; vertical-align: top; position: relative;
-}
-.dot-box { width: 30rpx; }
-.colon-box { width: 40rpx; }
-.digit-strip {
-  position: absolute; left: 0; top: 0;
-  transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
-}
-.digit-item {
-  height: 100rpx; line-height: 100rpx; display: block;
-  font-size: 80rpx; font-weight: bold; text-align: center;
-  color: #00d4ff; font-family: 'Courier New', monospace; width: 56rpx;
-}
-.dot-char {
-  font-size: 72rpx; font-weight: bold; color: #00d4ff;
-  line-height: 100rpx; font-family: 'Courier New', monospace;
-}
-.colon-char {
-  font-size: 72rpx; font-weight: bold; color: #fff;
-  line-height: 100rpx; font-family: 'Courier New', monospace;
+.money-amount {
+  font-size: 80rpx; font-weight: bold; color: #00d4ff;
+  display: block; margin: 20rpx 0; font-family: 'Courier New', monospace;
 }
 .progress-bar { height: 12rpx; background: #333; border-radius: 6rpx; overflow: hidden; margin-bottom: 16rpx; }
 .progress-fill { height: 100%; background: linear-gradient(90deg, #00d4ff, #0077ff); border-radius: 6rpx; }
@@ -49,11 +25,11 @@
 }
 .countdown-card.is-off-duty { border-color: rgba(255,215,0,0.3); }
 .countdown-label { font-size: 28rpx; color: #8888aa; display: block; margin-bottom: 16rpx; }
-.countdown-roll {
-  display: flex; justify-content: center; align-items: center;
-  margin-bottom: 16rpx; height: 100rpx;
+.countdown-time {
+  font-size: 72rpx; font-weight: bold; font-family: 'Courier New', monospace;
+  color: #fff; display: block; margin-bottom: 16rpx; letter-spacing: 8rpx;
 }
-.is-off-duty .digit-item, .is-off-duty .colon-char, .is-off-duty .dot-char { color: #ffd700; }
+.is-off-duty .countdown-time { color: #ffd700; }
 .countdown-status { font-size: 28rpx; color: #00d4ff; }
 .is-off-duty .countdown-status { color: #ffd700; }
 .error-tip {

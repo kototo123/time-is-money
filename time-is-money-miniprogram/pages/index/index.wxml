@@ -6,17 +6,7 @@
 
   <view class="money-card">
     <text class="money-label">今日已赚</text>
-    <view class="money-roll">
-      <text class="symbol">¥</text>
-      <view wx:for="{{moneyChars}}" wx:key="id" class="digit-box {{item.dot ? 'dot-box' : ''}}">
-        <block wx:if="{{!item.dot}}">
-          <view class="digit-strip" style="transform: translateY(-{{item.ch * 100}}rpx)">
-            <text wx:for="{{digits}}" wx:for-item="d" wx:key="*this" class="digit-item">{{d}}</text>
-          </view>
-        </block>
-        <text wx:else class="dot-char">.</text>
-      </view>
-    </view>
+    <text class="money-amount" animation="{{moneyAnim}}">¥{{earned}}</text>
     <view class="progress-bar">
       <view class="progress-fill" style="width: {{percentage}}%"></view>
     </view>
@@ -36,16 +26,7 @@
 
   <view class="countdown-card {{isWorkTime ? '' : 'is-off-duty'}}">
     <text class="countdown-label">{{countdownLabel}}</text>
-    <view class="countdown-roll">
-      <view wx:for="{{cdChars}}" wx:key="id" class="digit-box {{item.ch === ':' ? 'colon-box' : ''}}">
-        <block wx:if="{{item.ch !== ':'}}">
-          <view class="digit-strip" style="transform: translateY(-{{item.ch * 100}}rpx)">
-            <text wx:for="{{digits}}" wx:for-item="d" wx:key="*this" class="digit-item">{{d}}</text>
-          </view>
-        </block>
-        <text wx:else class="colon-char">:</text>
-      </view>
-    </view>
+    <text class="countdown-time" animation="{{cdAnim}}">{{countdownStr}}</text>
     <text class="countdown-status">{{statusText}}</text>
   </view>
 

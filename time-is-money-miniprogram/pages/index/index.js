@@ -9,7 +9,6 @@ const fishQuotes = [
   '🦐 摸鱼摸到虾，工作算个啥',
   '🐬 海豚音提醒你：该摸鱼了',
 ]
-const DIGITS = ['0','1','2','3','4','5','6','7','8','9']
 
 function pad(n) { return n < 10 ? '0' + n : '' + n }
 function formatCountdown(secs) {
@@ -42,6 +41,7 @@ Page({
     percentage: 0,
     remainingSeconds: 0,
     isWorkTime: true,
+    countdownStr: '00:00:00',
     countdownLabel: '距离下班',
     statusText: '摸鱼中 🐟',
     fishIndex: 0,
@@ -49,14 +49,17 @@ Page({
     greeting: getGreeting(),
     today: getToday(),
     error: '',
-    digits: DIGITS,
-    cdChars: '00:00:00'.split('').map((ch, i) => ({ id: i, ch })),
-    moneyChars: [],
     perSecondStr: '0.000000',
     percentageStr: '0.00',
+    moneyAnim: null,
+    cdAnim: null,
+    moneyTick: 0,
+    cdTick: 0,
   },
 
   onLoad() {
+    this.animMoney = wx.createAnimation({ duration: 400, timingFunction: 'ease-out' })
+    this.animCd = wx.createAnimation({ duration: 400, timingFunction: 'ease-out' })
     this.fetchData()
     this.timer = setInterval(() => this.fetchData(), 3000)
     this.secondTimer = setInterval(() => this.tick(), 1000)
@@ -76,21 +79,31 @@ Page({
     const newRem = rem - 1
     const isWork = this.data.isWorkTime
 
+    // Animate countdown
+    this.animCd.scale(1.05).translateY(-8).step()
+    this.animCd.scale(1).translateY(0).step()
+    this.setData({ cdAnim: this.animCd.export(), cdTick: this.data.cdTick + 1 })
+
     if (isWork && perSec > 0) {
       const newEarned = Math.min(earned + perSec, dailyTotal)
       const newPct = dailyTotal > 0 ? (newEarned / dailyTotal * 100) : 0
+      // Animate money
+      this.animMoney.scale(1.05).step()
+      this.animMoney.scale(1).step()
       this.setData({
         earned: newEarned.toFixed(2),
-        remainingSeconds: newRem,
+        dailyTotal: dailyTotal.toFixed(2),
         percentage: newPct,
+        remainingSeconds: newRem,
         percentageStr: newPct.toFixed(2),
-        cdChars: formatCountdown(newRem).split('').map((ch, i) => ({ id: i, ch })),
-        moneyChars: toMoneyChars(newEarned.toFixed(2)),
+        countdownStr: formatCountdown(newRem),
+        moneyAnim: this.animMoney.export(),
+        moneyTick: this.data.moneyTick + 1,
       })
     } else {
       this.setData({
         remainingSeconds: newRem,
-        cdChars: formatCountdown(newRem).split('').map((ch, i) => ({ id: i, ch })),
+        countdownStr: formatCountdown(newRem),
       })
     }
   },
@@ -119,11 +132,10 @@ Page({
         percentageStr: pct.toFixed(2),
         countdownLabel: label,
         statusText: status,
-        cdChars: formatCountdown(remSecs).split('').map((ch, i) => ({ id: i, ch })),
-        moneyChars: toMoneyChars(earnedStr),
+        countdownStr: formatCountdown(remSecs),
         error: ''
       })
-    }).catch(err => {
+    }).catch(() => {
       this.setData({ error: '连接后端失败' })
     })
   },
@@ -133,7 +145,3 @@ Page({
     this.setData({ fishIndex: idx, fishText: fishQuotes[idx] })
   }
 })
-
-function toMoneyChars(str) {
-  return str.split('').map((ch, i) => ({ id: i, ch, dot: ch === '.' }))
-}
