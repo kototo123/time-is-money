@@ -1,35 +1,32 @@
 CREATE TABLE IF NOT EXISTS `user` (
-  `id` int NOT NULL AUTO_INCREMENT,
-  `open_id` varchar(64) NOT NULL DEFAULT '',
-  `nick_name` varchar(64) DEFAULT NULL,
-  `avatar_url` varchar(256) DEFAULT NULL,
-  `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `update_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `uk_open_id` (`open_id`)
+  `id` BIGINT PRIMARY KEY AUTO_INCREMENT,
+  `openid` VARCHAR(64) NOT NULL UNIQUE,
+  `nickname` VARCHAR(64) DEFAULT '',
+  `avatar_url` VARCHAR(512) DEFAULT '',
+  `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS `user_config` (
-  `id` int NOT NULL AUTO_INCREMENT,
-  `user_id` int NOT NULL,
-  `monthly_salary` decimal(10,2) NOT NULL DEFAULT '0.00',
-  `work_start` time NOT NULL DEFAULT '09:00:00',
-  `work_end` time NOT NULL DEFAULT '18:00:00',
-  `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `update_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `uk_user_id` (`user_id`)
+  `id` BIGINT PRIMARY KEY AUTO_INCREMENT,
+  `user_id` BIGINT NOT NULL,
+  `salary_type` VARCHAR(16) NOT NULL DEFAULT 'MONTHLY',
+  `monthly_salary` DECIMAL(10,2) DEFAULT 0,
+  `hourly_rate` DECIMAL(10,2) DEFAULT 0,
+  `daily_work_hours` DECIMAL(4,2) DEFAULT 8,
+  `work_start_time` TIME DEFAULT '09:00:00',
+  `work_end_time` TIME DEFAULT '18:00:00',
+  `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS `daily_record` (
-  `id` int NOT NULL AUTO_INCREMENT,
-  `user_id` int NOT NULL,
-  `record_date` date NOT NULL,
-  `today_earned` decimal(10,2) NOT NULL DEFAULT '0.00',
-  `today_total` decimal(10,2) NOT NULL DEFAULT '0.00',
-  `percentage` decimal(5,2) NOT NULL DEFAULT '0.00',
-  `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `update_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  PRIMARY KEY (`id`),
+  `id` BIGINT PRIMARY KEY AUTO_INCREMENT,
+  `user_id` BIGINT NOT NULL,
+  `record_date` DATE NOT NULL,
+  `total_earned` DECIMAL(10,2) DEFAULT 0,
+  `is_workday` TINYINT(1) DEFAULT 1,
+  `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   UNIQUE KEY `uk_user_date` (`user_id`, `record_date`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
