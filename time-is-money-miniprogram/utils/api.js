@@ -1,5 +1,3 @@
-// 部署到 Railway 后，把第一行的地址改成你的 Railway 域名
-// 正式地址放第一位，开发地址自动回退
 const BASE_URLS = [
   'https://time-is-money-production.up.railway.app/api',
   'http://127.0.0.1:8080/api',
@@ -39,6 +37,9 @@ function request(method, url, data) {
 }
 
 module.exports = {
+  login(code, nickname, avatarUrl) {
+    return request('POST', '/user/login', { code, nickname, avatarUrl })
+  },
   getConfig(userId) {
     return request('GET', '/config', { userId })
   },

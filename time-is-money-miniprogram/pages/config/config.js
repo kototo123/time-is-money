@@ -30,24 +30,26 @@ Page({
   },
 
   onLoad() {
-    const app = getApp()
-    api.getConfig(app.globalData.userId).then(config => {
-      if (config) {
-        const wd = config.workDaysPerWeek || 5
-        this.setData({
-          salaryType: config.salaryType || 'MONTHLY',
-          monthlySalary: String(config.monthlySalary || ''),
-          hourlyRate: String(config.hourlyRate || ''),
-          dailyWorkHours: String(config.dailyWorkHours || '8'),
-          workStartTime: (config.workStartTime || '09:00').slice(0, 5),
-          workEndTime: (config.workEndTime || '18:00').slice(0, 5),
-          lunchStart: (config.lunchStart || '12:00').slice(0, 5),
-          lunchEnd: (config.lunchEnd || '13:00').slice(0, 5),
-          workDaysPerWeek: wd,
-          workDaysIndex: wd - 1,
-        })
-      }
-    }).catch(() => {})
+    getApp().waitForLogin().then(() => {
+      const app = getApp()
+      api.getConfig(app.globalData.userId).then(config => {
+        if (config) {
+          const wd = config.workDaysPerWeek || 5
+          this.setData({
+            salaryType: config.salaryType || 'MONTHLY',
+            monthlySalary: String(config.monthlySalary || ''),
+            hourlyRate: String(config.hourlyRate || ''),
+            dailyWorkHours: String(config.dailyWorkHours || '8'),
+            workStartTime: (config.workStartTime || '09:00').slice(0, 5),
+            workEndTime: (config.workEndTime || '18:00').slice(0, 5),
+            lunchStart: (config.lunchStart || '12:00').slice(0, 5),
+            lunchEnd: (config.lunchEnd || '13:00').slice(0, 5),
+            workDaysPerWeek: wd,
+            workDaysIndex: wd - 1,
+          })
+        }
+      }).catch(() => {})
+    })
   },
 
   setType(e) {

@@ -60,9 +60,11 @@ Page({
   onLoad() {
     this.animMoney = wx.createAnimation({ duration: 400, timingFunction: 'ease-out' })
     this.animCd = wx.createAnimation({ duration: 400, timingFunction: 'ease-out' })
-    this.fetchData()
-    this.timer = setInterval(() => this.fetchData(), 3000)
-    this.secondTimer = setInterval(() => this.tick(), 1000)
+    getApp().waitForLogin().then(() => {
+      this.fetchData()
+      this.timer = setInterval(() => this.fetchData(), 3000)
+      this.secondTimer = setInterval(() => this.tick(), 1000)
+    })
   },
 
   onUnload() {
