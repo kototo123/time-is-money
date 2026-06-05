@@ -87,8 +87,9 @@ public class UserService {
             return new EarningsDTO(BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, 0L, false);
         }
 
-        LocalDate today = LocalDate.now();
-        LocalTime now = LocalTime.now();
+        ZoneId shanghai = ZoneId.of("Asia/Shanghai");
+        LocalDate today = LocalDate.now(shanghai);
+        LocalTime now = LocalTime.now(shanghai);
         LocalTime start = config.getWorkStartTime();
         LocalTime end = config.getWorkEndTime();
 
