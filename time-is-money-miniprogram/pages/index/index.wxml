@@ -10,7 +10,7 @@
       <text class="symbol">¥</text>
       <view wx:for="{{moneyChars}}" wx:key="id" class="digit-box {{item.dot ? 'dot-box' : ''}}">
         <block wx:if="{{!item.dot}}">
-          <view class="digit-strip" style="transform: translateY(-{{item.ch}}em)">
+          <view class="digit-strip" style="transform: translateY(-{{item.ch * 100}}rpx)">
             <text wx:for="{{digits}}" wx:for-item="d" wx:key="*this" class="digit-item">{{d}}</text>
           </view>
         </block>
@@ -39,7 +39,7 @@
     <view class="countdown-roll">
       <view wx:for="{{cdChars}}" wx:key="id" class="digit-box {{item.ch === ':' ? 'colon-box' : ''}}">
         <block wx:if="{{item.ch !== ':'}}">
-          <view class="digit-strip" style="transform: translateY(-{{item.ch}}em)">
+          <view class="digit-strip" style="transform: translateY(-{{item.ch * 100}}rpx)">
             <text wx:for="{{digits}}" wx:for-item="d" wx:key="*this" class="digit-item">{{d}}</text>
           </view>
         </block>

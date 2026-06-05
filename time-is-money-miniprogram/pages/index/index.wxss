@@ -15,18 +15,18 @@
 .symbol { font-size: 48rpx; color: #00d4ff; font-weight: bold; margin-right: 8rpx; }
 .digit-box {
   height: 100rpx; width: 56rpx; overflow: hidden;
-  display: inline-block; vertical-align: top;
+  display: inline-block; vertical-align: top; position: relative;
 }
 .dot-box { width: 30rpx; }
 .colon-box { width: 40rpx; }
 .digit-strip {
-  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-  will-change: transform;
+  position: absolute; left: 0; top: 0;
+  transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
 }
 .digit-item {
   height: 100rpx; line-height: 100rpx; display: block;
   font-size: 80rpx; font-weight: bold; text-align: center;
-  color: #00d4ff; font-family: 'Courier New', monospace;
+  color: #00d4ff; font-family: 'Courier New', monospace; width: 56rpx;
 }
 .dot-char {
   font-size: 72rpx; font-weight: bold; color: #00d4ff;
