@@ -51,15 +51,13 @@ Page({
     error: '',
     perSecondStr: '0.000000',
     percentageStr: '0.00',
-    moneyAnim: null,
-    cdAnim: null,
-    moneyTick: 0,
-    cdTick: 0,
+    cdChars: [],
+    moneyChars: [],
+    prevCdChars: [],
+    prevMoneyChars: [],
   },
 
   onLoad() {
-    this.animMoney = wx.createAnimation({ duration: 400, timingFunction: 'ease-out' })
-    this.animCd = wx.createAnimation({ duration: 400, timingFunction: 'ease-out' })
     getApp().waitForLogin().then(() => {
       this.fetchData()
       this.timer = setInterval(() => this.fetchData(), 3000)
@@ -81,33 +79,45 @@ Page({
     const newRem = rem - 1
     const isWork = this.data.isWorkTime
 
-    // Animate countdown
-    this.animCd.scale(1.05).translateY(-8).step()
-    this.animCd.scale(1).translateY(0).step()
-    this.setData({ cdAnim: this.animCd.export(), cdTick: this.data.cdTick + 1 })
+    const newCd = formatCountdown(newRem)
+    const newCdChars = newCd.split('').map((ch, i) => {
+      const changed = ch !== this.data.countdownStr[i]
+      return { ch, id: i, changed }
+    })
 
     if (isWork && perSec > 0) {
       const newEarned = Math.min(earned + perSec, dailyTotal)
       const newPct = dailyTotal > 0 ? (newEarned / dailyTotal * 100) : 0
-      // Animate money
-      this.animMoney.scale(1.05).step()
-      this.animMoney.scale(1).step()
+      const newMoney = newEarned.toFixed(2)
+      const newMoneyChars = newMoney.split('').map((ch, i) => {
+        const changed = ch !== this.data.earned[i]
+        return { ch, id: i, dot: ch === '.', changed }
+      })
+
       this.setData({
-        earned: newEarned.toFixed(2),
-        dailyTotal: dailyTotal.toFixed(2),
+        earned: newMoney,
         percentage: newPct,
-        remainingSeconds: newRem,
         percentageStr: newPct.toFixed(2),
-        countdownStr: formatCountdown(newRem),
-        moneyAnim: this.animMoney.export(),
-        moneyTick: this.data.moneyTick + 1,
+        remainingSeconds: newRem,
+        countdownStr: newCd,
+        cdChars: newCdChars,
+        moneyChars: newMoneyChars,
       })
     } else {
       this.setData({
         remainingSeconds: newRem,
-        countdownStr: formatCountdown(newRem),
+        countdownStr: newCd,
+        cdChars: newCdChars,
       })
     }
+
+    // Clear changed flags after animation
+    setTimeout(() => {
+      this.setData({
+        cdChars: this.data.cdChars.map(c => ({ ...c, changed: false })),
+        moneyChars: this.data.moneyChars.map(c => ({ ...c, changed: false })),
+      })
+    }, 400)
   },
 
   fetchData() {
@@ -122,6 +132,7 @@ Page({
       else { label = '已经下班'; status = '自由时间 🎉' }
 
       const earnedStr = parseFloat(data.todayEarned).toFixed(2)
+      const cdStr = formatCountdown(remSecs)
       const pct = parseFloat(data.percentage)
       this.setData({
         earned: earnedStr,
@@ -134,7 +145,9 @@ Page({
         percentageStr: pct.toFixed(2),
         countdownLabel: label,
         statusText: status,
-        countdownStr: formatCountdown(remSecs),
+        countdownStr: cdStr,
+        cdChars: cdStr.split('').map((ch, i) => ({ ch, id: i, changed: false })),
+        moneyChars: earnedStr.split('').map((ch, i) => ({ ch, id: i, dot: ch === '.', changed: false })),
         error: ''
       })
     }).catch(() => {

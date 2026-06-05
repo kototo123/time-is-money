@@ -6,7 +6,13 @@
 
   <view class="money-card">
     <text class="money-label">今日已赚</text>
-    <text class="money-amount" animation="{{moneyAnim}}">¥{{earned}}</text>
+    <view class="money-roll">
+      <text class="symbol">¥</text>
+      <view wx:for="{{moneyChars}}" wx:key="id" class="char-box {{item.dot ? 'dot-box' : ''}}">
+        <text wx:if="{{!item.dot}}" class="char {{item.changed ? 'roll-in' : ''}}">{{item.ch}}</text>
+        <text wx:else class="char dot-char">.</text>
+      </view>
+    </view>
     <view class="progress-bar">
       <view class="progress-fill" style="width: {{percentage}}%"></view>
     </view>
@@ -26,7 +32,12 @@
 
   <view class="countdown-card {{isWorkTime ? '' : 'is-off-duty'}}">
     <text class="countdown-label">{{countdownLabel}}</text>
-    <text class="countdown-time" animation="{{cdAnim}}">{{countdownStr}}</text>
+    <view class="countdown-roll">
+      <view wx:for="{{cdChars}}" wx:key="id" class="char-box {{item.ch === ':' ? 'colon-box' : ''}}">
+        <text wx:if="{{item.ch !== ':'}}" class="char {{item.changed ? 'roll-in' : ''}}">{{item.ch}}</text>
+        <text wx:else class="char colon-char">:</text>
+      </view>
+    </view>
     <text class="countdown-status">{{statusText}}</text>
   </view>
 
