@@ -120,7 +120,7 @@ public class UserService {
             earned = dailyTotal;
         } else {
             long elapsed = calcElapsedWorkSeconds(config, start, now);
-            earned = perSecond.multiply(new BigDecimal(elapsed)).setScale(2, RoundingMode.HALF_UP);
+            earned = perSecond.multiply(new BigDecimal(elapsed)).setScale(4, RoundingMode.HALF_UP);
             remainingSeconds = totalWorkSeconds - elapsed;
         }
 

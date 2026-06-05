@@ -88,8 +88,8 @@ Page({
     if (isWork && perSec > 0) {
       const newEarned = Math.min(earned + perSec, dailyTotal)
       const newPct = dailyTotal > 0 ? (newEarned / dailyTotal * 100) : 0
-      const newMoney = newEarned.toFixed(2)
-      const newMoneyChars = newMoney.split('').map((ch, i) => {
+          const newMoney = newEarned.toFixed(4)
+          const newMoneyChars = newMoney.split('').map((ch, i) => {
         const changed = ch !== this.data.earned[i]
         return { ch, id: i, dot: ch === '.', changed }
       })
@@ -131,7 +131,7 @@ Page({
       else if (isWork) { label = '距离下班'; status = '摸鱼中 🐟' }
       else { label = '已经下班'; status = '自由时间 🎉' }
 
-      const earnedStr = parseFloat(data.todayEarned).toFixed(2)
+      const earnedStr = parseFloat(data.todayEarned).toFixed(4)
       const cdStr = formatCountdown(remSecs)
       const pct = parseFloat(data.percentage)
       this.setData({
