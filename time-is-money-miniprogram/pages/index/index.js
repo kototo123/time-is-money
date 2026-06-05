@@ -52,6 +52,8 @@ Page({
     digits: DIGITS,
     cdChars: '00:00:00'.split('').map((ch, i) => ({ id: i, ch })),
     moneyChars: [],
+    perSecondStr: '0.000000',
+    percentageStr: '0.00',
   },
 
   onLoad() {
@@ -76,10 +78,12 @@ Page({
 
     if (isWork && perSec > 0) {
       const newEarned = Math.min(earned + perSec, dailyTotal)
+      const newPct = dailyTotal > 0 ? (newEarned / dailyTotal * 100) : 0
       this.setData({
         earned: newEarned.toFixed(2),
         remainingSeconds: newRem,
-        percentage: dailyTotal > 0 ? (newEarned / dailyTotal * 100) : 0,
+        percentage: newPct,
+        percentageStr: newPct.toFixed(2),
         cdChars: formatCountdown(newRem).split('').map((ch, i) => ({ id: i, ch })),
         moneyChars: toMoneyChars(newEarned.toFixed(2)),
       })
@@ -96,19 +100,23 @@ Page({
     api.getTodayEarnings(app.globalData.userId).then(data => {
       const isWork = data.isWorkTime
       const remSecs = data.remainingSeconds
+      const perSec = parseFloat(data.perSecond) || 0
       let label, status
       if (!isWork && remSecs > 0) { label = '距离上班'; status = '休息中 😴' }
       else if (isWork) { label = '距离下班'; status = '摸鱼中 🐟' }
       else { label = '已经下班'; status = '自由时间 🎉' }
 
       const earnedStr = parseFloat(data.todayEarned).toFixed(2)
+      const pct = parseFloat(data.percentage)
       this.setData({
         earned: earnedStr,
         dailyTotal: parseFloat(data.todayTotal).toFixed(2),
-        percentage: parseFloat(data.percentage),
+        percentage: pct,
         remainingSeconds: remSecs,
         isWorkTime: isWork,
-        perSecond: parseFloat(data.perSecond) || 0,
+        perSecond: perSec,
+        perSecondStr: perSec.toFixed(6),
+        percentageStr: pct.toFixed(2),
         countdownLabel: label,
         statusText: status,
         cdChars: formatCountdown(remSecs).split('').map((ch, i) => ({ id: i, ch })),
