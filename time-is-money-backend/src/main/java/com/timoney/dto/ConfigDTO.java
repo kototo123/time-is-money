@@ -12,6 +12,9 @@ public class ConfigDTO {
     private BigDecimal dailyWorkHours;
     private LocalTime workStartTime;
     private LocalTime workEndTime;
+    private LocalTime lunchStart;
+    private LocalTime lunchEnd;
+    private Integer workDaysPerWeek;
 
     public String getSalaryType() { return salaryType; }
     public void setSalaryType(String salaryType) { this.salaryType = salaryType; }
@@ -25,4 +28,10 @@ public class ConfigDTO {
     public void setWorkStartTime(LocalTime workStartTime) { this.workStartTime = workStartTime; }
     public LocalTime getWorkEndTime() { return workEndTime; }
     public void setWorkEndTime(LocalTime workEndTime) { this.workEndTime = workEndTime; }
+    public LocalTime getLunchStart() { return lunchStart; }
+    public void setLunchStart(LocalTime lunchStart) { this.lunchStart = lunchStart; }
+    public LocalTime getLunchEnd() { return lunchEnd; }
+    public void setLunchEnd(LocalTime lunchEnd) { this.lunchEnd = lunchEnd; }
+    public Integer getWorkDaysPerWeek() { return workDaysPerWeek; }
+    public void setWorkDaysPerWeek(Integer workDaysPerWeek) { this.workDaysPerWeek = workDaysPerWeek; }
 }

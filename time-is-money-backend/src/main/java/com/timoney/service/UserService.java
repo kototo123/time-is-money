@@ -47,6 +47,9 @@ public class UserService {
             config.setDailyWorkHours(new BigDecimal("8"));
             config.setWorkStartTime(LocalTime.of(9, 0));
             config.setWorkEndTime(LocalTime.of(18, 0));
+            config.setLunchStart(LocalTime.of(12, 0));
+            config.setLunchEnd(LocalTime.of(13, 0));
+            config.setWorkDaysPerWeek(5);
             configMapper.insert(config);
         }
         return user;
@@ -73,6 +76,9 @@ public class UserService {
         config.setDailyWorkHours(dto.getDailyWorkHours());
         config.setWorkStartTime(dto.getWorkStartTime());
         config.setWorkEndTime(dto.getWorkEndTime());
+        config.setLunchStart(dto.getLunchStart());
+        config.setLunchEnd(dto.getLunchEnd());
+        config.setWorkDaysPerWeek(dto.getWorkDaysPerWeek());
 
         if (config.getId() == null) {
             configMapper.insert(config);
@@ -84,7 +90,7 @@ public class UserService {
     public EarningsDTO getTodayEarnings(Long userId) {
         UserConfig config = getConfig(userId);
         if (config == null) {
-            return new EarningsDTO(BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, 0L, false);
+            return new EarningsDTO(BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, 0L, false, BigDecimal.ZERO);
         }
 
         ZoneId shanghai = ZoneId.of("Asia/Shanghai");
@@ -94,55 +100,92 @@ public class UserService {
         LocalTime end = config.getWorkEndTime();
 
         if (start == null || end == null) {
-            return new EarningsDTO(BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, 0L, false);
+            return new EarningsDTO(BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, 0L, false, BigDecimal.ZERO);
         }
 
         BigDecimal dailyTotal = calcDailyTotal(config);
-        boolean isWorkTime = !now.isBefore(start) && !now.isAfter(end);
-        long remainingSeconds;
+        long totalWorkSeconds = calcTotalWorkSeconds(config);
+        BigDecimal perSecond = totalWorkSeconds > 0
+                ? dailyTotal.divide(new BigDecimal(totalWorkSeconds), 6, RoundingMode.HALF_UP)
+                : BigDecimal.ZERO;
 
-        if (isWorkTime) {
-            remainingSeconds = Duration.between(now, end).getSeconds();
-        } else if (now.isBefore(start)) {
+        long remainingSeconds;
+        BigDecimal earned;
+
+        if (now.isBefore(start)) {
             remainingSeconds = Duration.between(now, start).getSeconds();
-        } else {
+            earned = BigDecimal.ZERO;
+        } else if (now.isAfter(end)) {
             remainingSeconds = 0;
+            earned = dailyTotal;
+        } else {
+            long elapsed = calcElapsedWorkSeconds(config, start, now);
+            earned = perSecond.multiply(new BigDecimal(elapsed)).setScale(2, RoundingMode.HALF_UP);
+            remainingSeconds = totalWorkSeconds - elapsed;
         }
 
-        BigDecimal earned = calcEarned(config, dailyTotal, now, isWorkTime, start, end);
+        boolean isInLunch = isDuringLunch(config, now);
+        boolean isWorkTime = !now.isBefore(start) && !now.isAfter(end) && !isInLunch;
+
         BigDecimal percentage = dailyTotal.compareTo(BigDecimal.ZERO) > 0
                 ? earned.multiply(new BigDecimal("100")).divide(dailyTotal, 2, RoundingMode.HALF_UP)
                 : BigDecimal.ZERO;
 
         updateDailyRecord(userId, today, earned);
 
-        return new EarningsDTO(earned, dailyTotal, percentage, remainingSeconds, isWorkTime);
+        return new EarningsDTO(earned, dailyTotal, percentage, remainingSeconds, isWorkTime, perSecond);
+    }
+
+    private boolean isDuringLunch(UserConfig config, LocalTime now) {
+        LocalTime lunchStart = config.getLunchStart();
+        LocalTime lunchEnd = config.getLunchEnd();
+        if (lunchStart == null || lunchEnd == null) return false;
+        return !now.isBefore(lunchStart) && now.isBefore(lunchEnd);
+    }
+
+    private long calcTotalWorkSeconds(UserConfig config) {
+        LocalTime start = config.getWorkStartTime();
+        LocalTime end = config.getWorkEndTime();
+        long total = Duration.between(start, end).getSeconds();
+        if (total <= 0) return 0;
+
+        LocalTime lunchStart = config.getLunchStart();
+        LocalTime lunchEnd = config.getLunchEnd();
+        if (lunchStart != null && lunchEnd != null) {
+            long lunchDuration = Duration.between(lunchStart, lunchEnd).getSeconds();
+            if (lunchDuration > 0) total -= lunchDuration;
+        }
+        return Math.max(total, 0);
+    }
+
+    private long calcElapsedWorkSeconds(UserConfig config, LocalTime start, LocalTime now) {
+        long elapsed = Duration.between(start, now).getSeconds();
+        LocalTime lunchStart = config.getLunchStart();
+        LocalTime lunchEnd = config.getLunchEnd();
+        if (lunchStart != null && lunchEnd != null && now.isAfter(lunchStart)) {
+            long lunchDuration = Duration.between(lunchStart, lunchEnd).getSeconds();
+            if (lunchDuration > 0) {
+                if (now.isBefore(lunchEnd)) {
+                    elapsed -= Duration.between(lunchStart, now).getSeconds();
+                } else {
+                    elapsed -= lunchDuration;
+                }
+            }
+        }
+        return Math.max(elapsed, 0);
     }
 
     private BigDecimal calcDailyTotal(UserConfig config) {
         if ("MONTHLY".equals(config.getSalaryType()) && config.getMonthlySalary() != null) {
-            BigDecimal workDays = new BigDecimal("21.75");
-            return config.getMonthlySalary().divide(workDays, 2, RoundingMode.HALF_UP);
+            int daysPerWeek = config.getWorkDaysPerWeek() != null && config.getWorkDaysPerWeek() > 0
+                    ? config.getWorkDaysPerWeek() : 5;
+            double monthlyWorkDays = daysPerWeek * 52.0 / 12.0;
+            return config.getMonthlySalary().divide(new BigDecimal(monthlyWorkDays), 2, RoundingMode.HALF_UP);
         } else if ("HOURLY".equals(config.getSalaryType()) && config.getHourlyRate() != null) {
             BigDecimal hours = config.getDailyWorkHours() != null ? config.getDailyWorkHours() : new BigDecimal("8");
             return config.getHourlyRate().multiply(hours);
         }
         return BigDecimal.ZERO;
-    }
-
-    private BigDecimal calcEarned(UserConfig config, BigDecimal dailyTotal, LocalTime now,
-                                  boolean isWorkTime, LocalTime start, LocalTime end) {
-        if (!isWorkTime) {
-            if (now.isBefore(start)) return BigDecimal.ZERO;
-            return dailyTotal;
-        }
-
-        long totalWorkSeconds = Duration.between(start, end).getSeconds();
-        long elapsedSeconds = Duration.between(start, now).getSeconds();
-        if (totalWorkSeconds <= 0) return dailyTotal;
-
-        return dailyTotal.multiply(new BigDecimal(elapsedSeconds))
-                .divide(new BigDecimal(totalWorkSeconds), 2, RoundingMode.HALF_UP);
     }
 
     private void updateDailyRecord(Long userId, LocalDate date, BigDecimal earned) {

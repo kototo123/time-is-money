@@ -8,6 +8,7 @@ public class EarningsDTO {
     private BigDecimal percentage;
     private long remainingSeconds;
     private Boolean isWorkTime;
+    private BigDecimal perSecond;
 
     public EarningsDTO(BigDecimal todayEarned, BigDecimal todayTotal, BigDecimal percentage, long remainingSeconds, Boolean isWorkTime) {
         this.todayEarned = todayEarned;
@@ -15,6 +16,15 @@ public class EarningsDTO {
         this.percentage = percentage;
         this.remainingSeconds = remainingSeconds;
         this.isWorkTime = isWorkTime;
+    }
+
+    public EarningsDTO(BigDecimal todayEarned, BigDecimal todayTotal, BigDecimal percentage, long remainingSeconds, Boolean isWorkTime, BigDecimal perSecond) {
+        this.todayEarned = todayEarned;
+        this.todayTotal = todayTotal;
+        this.percentage = percentage;
+        this.remainingSeconds = remainingSeconds;
+        this.isWorkTime = isWorkTime;
+        this.perSecond = perSecond;
     }
 
     public BigDecimal getTodayEarned() { return todayEarned; }
@@ -27,4 +37,6 @@ public class EarningsDTO {
     public void setRemainingSeconds(long remainingSeconds) { this.remainingSeconds = remainingSeconds; }
     public Boolean getIsWorkTime() { return isWorkTime; }
     public void setIsWorkTime(Boolean isWorkTime) { this.isWorkTime = isWorkTime; }
+    public BigDecimal getPerSecond() { return perSecond; }
+    public void setPerSecond(BigDecimal perSecond) { this.perSecond = perSecond; }
 }

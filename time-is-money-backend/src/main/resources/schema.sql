@@ -20,6 +20,9 @@ CREATE TABLE `user_config` (
   `daily_work_hours` DECIMAL(4,2) DEFAULT 8,
   `work_start_time` TIME DEFAULT '09:00:00',
   `work_end_time` TIME DEFAULT '18:00:00',
+  `lunch_start` TIME DEFAULT '12:00:00',
+  `lunch_end` TIME DEFAULT '13:00:00',
+  `work_days_per_week` INT DEFAULT 5,
   `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
   `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

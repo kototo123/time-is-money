@@ -78,9 +78,9 @@ Page({
         countdown: formatCountdown(remSecs),
         countdownLabel: label,
         statusText: status,
-        perSecond: parseFloat(data.todayEarned) > 0
-          ? (parseFloat(data.todayEarned) / (3600 * 9)).toFixed(4)
-          : '0.0000',
+        perSecond: data.perSecond
+          ? parseFloat(data.perSecond).toFixed(6)
+          : '0.000000',
         error: ''
       })
     }).catch(err => {

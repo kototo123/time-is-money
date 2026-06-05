@@ -24,6 +24,13 @@
       <text class="label">每日工作小时数</text>
       <input class="input" type="digit" value="{{dailyWorkHours}}" bindinput="onInput" data-field="dailyWorkHours" placeholder="默认8小时" />
     </view>
+
+    <view class="form-group">
+      <text class="label">每周工作天数</text>
+      <picker mode="selector" range="{{workDaysOptions}}" range-key="label" value="{{workDaysIndex}}" bindchange="onWorkDaysChange">
+        <view class="picker">{{workDaysOptions[workDaysIndex].label}}</view>
+      </picker>
+    </view>
   </view>
 
   <view class="section">
@@ -38,6 +45,22 @@
       <text class="label">下班时间</text>
       <picker mode="time" value="{{workEndTime}}" bindchange="onTimeChange" data-field="workEndTime">
         <view class="picker">{{workEndTime || '选择时间'}}</view>
+      </picker>
+    </view>
+  </view>
+
+  <view class="section">
+    <text class="section-title">午休时间</text>
+    <view class="form-group">
+      <text class="label">午休开始</text>
+      <picker mode="time" value="{{lunchStart}}" bindchange="onTimeChange" data-field="lunchStart">
+        <view class="picker">{{lunchStart || '12:00'}}</view>
+      </picker>
+    </view>
+    <view class="form-group">
+      <text class="label">午休结束</text>
+      <picker mode="time" value="{{lunchEnd}}" bindchange="onTimeChange" data-field="lunchEnd">
+        <view class="picker">{{lunchEnd || '13:00'}}</view>
       </picker>
     </view>
   </view>

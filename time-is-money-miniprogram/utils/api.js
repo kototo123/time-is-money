@@ -1,6 +1,7 @@
 // 部署到 Railway 后，把第一行的地址改成你的 Railway 域名
+// 正式地址放第一位，开发地址自动回退
 const BASE_URLS = [
-  'https://time-is-money-backend.up.railway.app/api',
+  'https://time-is-money-production.up.railway.app/api',
   'http://127.0.0.1:8080/api',
   'http://192.168.1.6:8080/api'
 ]
