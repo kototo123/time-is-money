@@ -1,10 +1,15 @@
 package com.timoney.entity;
 
-import com.baomidou.mybatisplus.annotation.*;
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableName;
+import com.baomidou.mybatisplus.annotation.FieldFill;
 import java.time.LocalDateTime;
 
 @TableName("user_prefs")
 public class UserPrefs {
+    @TableId
     private Long userId;
     private String workDays;
     private String workDateOverrides;
