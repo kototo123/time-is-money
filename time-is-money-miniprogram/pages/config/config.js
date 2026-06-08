@@ -11,28 +11,59 @@ function setToWorkDays(set) {
   return Array.from(set).sort((a, b) => a - b).join(',')
 }
 
-function buildCalendar(year, month, workDaysSet) {
+function workDaysLabel(str) {
+  if (!str) return '点击设置'
+  return str.split(',').map(n => weekdayNames[parseInt(n) - 1]).filter(Boolean).join(' ')
+}
+
+function parseOverrides(str) {
+  const added = new Set()
+  const removed = new Set()
+  if (!str) return { added, removed }
+  str.split(',').forEach(entry => {
+    entry = entry.trim()
+    if (!entry) return
+    if (entry.startsWith('+')) added.add(entry.slice(1))
+    else if (entry.startsWith('-')) removed.add(entry.slice(1))
+  })
+  return { added, removed }
+}
+
+function overridesToString(added, removed) {
+  const parts = []
+  Array.from(added).sort().forEach(d => parts.push('+' + d))
+  Array.from(removed).sort().forEach(d => parts.push('-' + d))
+  return parts.join(',')
+}
+
+function formatDate(y, m, d) {
+  return y + '-' + String(m).padStart(2, '0') + '-' + String(d).padStart(2, '0')
+}
+
+function buildCalendar(year, month, workDaysSet, addedSet, removedSet) {
   const firstDay = new Date(year, month - 1, 1)
   const lastDay = new Date(year, month, 0)
   const totalDays = lastDay.getDate()
   const startDOW = firstDay.getDay() || 7
 
   const today = new Date()
-  const todayStr = today.getFullYear() + '-' + today.getMonth() + '-' + today.getDate()
+  const todayStr = formatDate(today.getFullYear(), today.getMonth() + 1, today.getDate())
 
   const weeks = []
   let week = []
   for (let i = 0; i < startDOW - 1; i++) {
-    week.push({ date: null, dow: null, isWork: false, isToday: false })
+    week.push({ date: null, dow: null, isWork: false, isToday: false, isOverride: false })
   }
   for (let d = 1; d <= totalDays; d++) {
     const dow = new Date(year, month - 1, d).getDay() || 7
-    const isToday = (year + '-' + (month - 1) + '-' + d) === todayStr
-    week.push({ date: d, dow, isWork: workDaysSet.has(dow), isToday })
+    const ds = formatDate(year, month, d)
+    const isToday = ds === todayStr
+    const isAdded = addedSet.has(ds)
+    const isRemoved = removedSet.has(ds)
+    const isWork = isAdded ? true : isRemoved ? false : workDaysSet.has(dow)
+    week.push({ date: d, dow, isWork, isToday, isOverride: isAdded || isRemoved, dateStr: ds })
     if (dow === 7 || d === totalDays) {
-      while (week.length < 7) {
-        week.push({ date: null, dow: null, isWork: false, isToday: false })
-      }
+      while (week.length < 7) { week.push({ date: null, dow: null, isWork: false, isToday: false, isOverride: false }) }
       weeks.push(week)
       week = []
     }
@@ -51,6 +82,9 @@ Page({
     lunchStart: '12:00',
     lunchEnd: '13:00',
     workDays: '1,2,3,4,5',
+    workDaysLabel: '一 二 三 四 五',
+    workDateOverrides: '',
+    calOpen: false,
     calendarYear: 0,
     calendarMonth: 0,
     calendarWeeks: [],
@@ -80,10 +114,25 @@ Page({
     goalAmount: '',
   },
 
-  refreshCalendar(workDays) {
-    const s = workDaysToSet(workDays)
-    const weeks = buildCalendar(this.data.calendarYear, this.data.calendarMonth, s)
+  refreshCalendar() {
+    const s = workDaysToSet(this.data.workDays)
+    const { added, removed } = parseOverrides(this.data.workDateOverrides)
+    const weeks = buildCalendar(this.data.calendarYear, this.data.calendarMonth, s, added, removed)
     this.setData({ calendarWeeks: weeks })
+  },
+
+  openCal() {
+    const now = new Date()
+    this.setData({
+      calOpen: true,
+      calendarYear: now.getFullYear(),
+      calendarMonth: now.getMonth() + 1,
+    })
+    this.refreshCalendar()
+  },
+
+  closeCal() {
+    this.setData({ calOpen: false })
   },
 
   onLoad() {
@@ -98,7 +147,6 @@ Page({
       const goalName = wx.getStorageSync('goalName') || ''
       const goalAmount = wx.getStorageSync('goalAmount') || ''
 
-      const now = new Date()
       this.setData({
         decimalPlaces: dp,
         decimalIndex: dp - 2,
@@ -108,14 +156,11 @@ Page({
         goalEnabled,
         goalName,
         goalAmount,
-        calendarYear: now.getFullYear(),
-        calendarMonth: now.getMonth() + 1,
       })
 
       const app = getApp()
       api.getConfig(app.globalData.userId).then(config => {
         if (config) {
-          const wd = config.workDays || '1,2,3,4,5'
           this.setData({
             salaryType: config.salaryType || 'MONTHLY',
             monthlySalary: String(config.monthlySalary || ''),
@@ -125,15 +170,12 @@ Page({
             workEndTime: (config.workEndTime || '18:00').slice(0, 5),
             lunchStart: (config.lunchStart || '12:00').slice(0, 5),
             lunchEnd: (config.lunchEnd || '13:00').slice(0, 5),
-            workDays: wd,
+            workDays: config.workDays || '1,2,3,4,5',
+            workDaysLabel: workDaysLabel(config.workDays || '1,2,3,4,5'),
+            workDateOverrides: config.workDateOverrides || '',
           })
-          this.refreshCalendar(wd)
-        } else {
-          this.refreshCalendar('1,2,3,4,5')
         }
-      }).catch(() => {
-        this.refreshCalendar('1,2,3,4,5')
-      })
+      }).catch(() => {})
     })
   },
 
@@ -153,9 +195,7 @@ Page({
     wx.showToast({ title: val ? '每' + val + '元掉金币' : '已关闭金币', icon: 'none' })
   },
 
-  onGoalEnabledChange(e) {
-    this.setData({ goalEnabled: e.detail.value })
-  },
+  onGoalEnabledChange(e) { this.setData({ goalEnabled: e.detail.value }) },
 
   onHideMoneyChange(e) {
     const val = e.detail.value
@@ -163,9 +203,7 @@ Page({
     this.setData({ hideMoney: val })
   },
 
-  setType(e) {
-    this.setData({ salaryType: e.currentTarget.dataset.type })
-  },
+  setType(e) { this.setData({ salaryType: e.currentTarget.dataset.type }) },
 
   onInput(e) {
     const field = e.currentTarget.dataset.field
@@ -177,37 +215,45 @@ Page({
     this.setData({ [field]: e.detail.value })
   },
 
-  toggleDay(e) {
-    const dow = parseInt(e.currentTarget.dataset.dow)
-    if (!dow) return
-    const set = workDaysToSet(this.data.workDays)
-    if (set.has(dow)) set.delete(dow); else set.add(dow)
-    const str = setToWorkDays(set)
-    this.setData({ workDays: str })
-    this.refreshCalendar(str)
-  },
-
   toggleWeekday(e) {
     const dow = parseInt(e.currentTarget.dataset.dow)
     const set = workDaysToSet(this.data.workDays)
     if (set.has(dow)) set.delete(dow); else set.add(dow)
     const str = setToWorkDays(set)
-    this.setData({ workDays: str })
-    this.refreshCalendar(str)
+    this.setData({ workDays: str, workDaysLabel: workDaysLabel(str) })
+    this.refreshCalendar()
+  },
+
+  toggleDay(e) {
+    const ds = e.currentTarget.dataset.date
+    if (!ds) return
+    const s = workDaysToSet(this.data.workDays)
+    const dow = new Date(ds).getDay() || 7
+    const baseWork = s.has(dow)
+    const { added, removed } = parseOverrides(this.data.workDateOverrides)
+    if (baseWork) {
+      if (removed.has(ds)) removed.delete(ds); else removed.add(ds)
+      if (added.has(ds)) added.delete(ds)
+    } else {
+      if (added.has(ds)) added.delete(ds); else added.add(ds)
+      if (removed.has(ds)) removed.delete(ds)
+    }
+    this.setData({ workDateOverrides: overridesToString(added, removed) })
+    this.refreshCalendar()
   },
 
   prevMonth() {
     let y = this.data.calendarYear, m = this.data.calendarMonth - 1
     if (m < 1) { m = 12; y-- }
     this.setData({ calendarYear: y, calendarMonth: m })
-    this.refreshCalendar(this.data.workDays)
+    this.refreshCalendar()
   },
 
   nextMonth() {
     let y = this.data.calendarYear, m = this.data.calendarMonth + 1
     if (m > 12) { m = 1; y++ }
     this.setData({ calendarYear: y, calendarMonth: m })
-    this.refreshCalendar(this.data.workDays)
+    this.refreshCalendar()
   },
 
   handleSave() {
@@ -223,6 +269,7 @@ Page({
       lunchEnd: this.data.lunchEnd,
       workDaysPerWeek: this.data.workDays ? workDaysToSet(this.data.workDays).size : 5,
       workDays: this.data.workDays,
+      workDateOverrides: this.data.workDateOverrides,
     }).then(() => {
       wx.setStorageSync('goalEnabled', this.data.goalEnabled)
       wx.setStorageSync('goalName', this.data.goalName)

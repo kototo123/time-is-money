@@ -16,28 +16,11 @@
         <input class="input-sm" type="digit" value="{{dailyWorkHours}}" bindinput="onInput" data-field="dailyWorkHours" placeholder="8" />
         <text class="field-unit">小时</text>
       </view>
-    </view>
-  </view>
-
-  <view class="section">
-    <view class="section-header">
-      <text class="section-icon">📅</text>
-      <text class="section-title">工作日</text>
-    </view>
-    <text class="cal-hint">点击日期切换工作日/休息日，点表头批量选</text>
-    <view class="cal-nav">
-      <text class="cal-nav-btn" bindtap="prevMonth">◀</text>
-      <text class="cal-nav-title">{{calendarYear}}年{{calendarMonth}}月</text>
-      <text class="cal-nav-btn" bindtap="nextMonth">▶</text>
-    </view>
-    <view class="cal-weekday-row">
-      <view wx:for="{{weekdayNames}}" wx:key="index" class="cal-weekday-cell cal-weekday-header {{workDays.indexOf(index+1) > -1 ? 'on' : 'off'}}" data-dow="{{index+1}}" bindtap="toggleWeekday">
-        <text>{{item}}</text>
-      </view>
-    </view>
-    <view wx:for="{{calendarWeeks}}" wx:key="index" class="cal-week-row">
-      <view wx:for="{{item}}" wx:for-item="day" wx:key="date" class="cal-day-cell {{day.date ? '' : 'empty'}} {{day.isWork ? 'work' : 'rest'}} {{day.isToday ? 'today' : ''}}" data-dow="{{day.dow}}" bindtap="{{day.date ? 'toggleDay' : ''}}">
-        <text wx:if="{{day.date}}">{{day.date}}</text>
+      <view class="field-half">
+        <text class="field-label">工作日</text>
+        <view class="input-sm cal-btn" bindtap="openCal">
+          <text>{{workDaysLabel}}</text>
+        </view>
       </view>
     </view>
   </view>
@@ -126,4 +109,27 @@
   </view>
 
   <button class="save-btn" bindtap="handleSave">保存设置</button>
+
+  <!-- Calendar Modal -->
+  <view class="cal-mask" wx:if="{{calOpen}}" bindtap="closeCal"></view>
+  <view class="cal-modal" wx:if="{{calOpen}}">
+    <view class="cal-modal-inner">
+      <view class="cal-nav">
+        <text class="cal-nav-btn" bindtap="prevMonth">◀</text>
+        <text class="cal-nav-title">{{calendarYear}}年{{calendarMonth}}月</text>
+        <text class="cal-nav-btn" bindtap="nextMonth">▶</text>
+      </view>
+      <view class="cal-weekday-row">
+        <view wx:for="{{weekdayNames}}" wx:key="index" class="cal-weekday-cell cal-weekday-header {{workDays.indexOf(index+1) > -1 ? 'on' : 'off'}}" data-dow="{{index+1}}" bindtap="toggleWeekday">
+          <text>{{item}}</text>
+        </view>
+      </view>
+      <view wx:for="{{calendarWeeks}}" wx:key="index" class="cal-week-row">
+        <view wx:for="{{item}}" wx:for-item="day" wx:key="date" class="cal-day-cell {{day.date ? '' : 'empty'}} {{day.isWork ? 'work' : 'rest'}} {{day.isToday ? 'today' : ''}} {{day.isOverride ? 'override' : ''}}" data-date="{{day.dateStr}}" bindtap="{{day.date ? 'toggleDay' : ''}}">
+          <text wx:if="{{day.date}}">{{day.date}}</text>
+        </view>
+      </view>
+      <text class="cal-done" bindtap="closeCal">完成</text>
+    </view>
+  </view>
 </view>

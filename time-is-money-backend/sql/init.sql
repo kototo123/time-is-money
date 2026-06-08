@@ -24,6 +24,7 @@ CREATE TABLE `user_config` (
   `lunch_end` TIME DEFAULT '13:00:00',
   `work_days_per_week` INT DEFAULT 5,
   `work_days` VARCHAR(20) DEFAULT '1,2,3,4,5',
+  `work_date_overrides` VARCHAR(500) DEFAULT '',
   `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
   `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   FOREIGN KEY (user_id) REFERENCES `user`(id)

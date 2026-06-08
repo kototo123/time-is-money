@@ -84,6 +84,7 @@ public class UserService {
         config.setLunchEnd(dto.getLunchEnd());
         config.setWorkDaysPerWeek(dto.getWorkDaysPerWeek());
         config.setWorkDays(dto.getWorkDays());
+        config.setWorkDateOverrides(dto.getWorkDateOverrides());
 
         if (config.getId() == null) {
             configMapper.insert(config);
@@ -108,7 +109,7 @@ public class UserService {
             return new EarningsDTO(BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, 0L, false, BigDecimal.ZERO);
         }
 
-        boolean isRestDay = isTodayRestDay(today, config.getWorkDays());
+        boolean isRestDay = isTodayRestDay(today, config.getWorkDays(), config.getWorkDateOverrides());
 
         if (isRestDay) {
             BigDecimal dailyTotal = calcDailyTotal(config);
@@ -199,6 +200,25 @@ public class UserService {
     }
 
     private boolean isTodayRestDay(LocalDate today, String workDays) {
+        return isRestDay(today, workDays, null);
+    }
+
+    private boolean isTodayRestDay(LocalDate today, String workDays, String workDateOverrides) {
+        return isRestDay(today, workDays, workDateOverrides);
+    }
+
+    private boolean isRestDay(LocalDate today, String workDays, String workDateOverrides) {
+        // Check date-level overrides first
+        if (workDateOverrides != null && !workDateOverrides.isBlank()) {
+            String dateStr = today.toString();
+            for (String entry : workDateOverrides.split(",")) {
+                entry = entry.trim();
+                if (entry.isEmpty()) continue;
+                if (entry.startsWith("+") && entry.substring(1).equals(dateStr)) return false;
+                if (entry.startsWith("-") && entry.substring(1).equals(dateStr)) return true;
+            }
+        }
+        // Fall back to weekday check
         if (workDays == null || workDays.isBlank()) return false;
         Set<Integer> days = Arrays.stream(workDays.split(","))
                 .map(String::trim)
@@ -225,7 +245,7 @@ public class UserService {
                 .eq(DailyRecord::getUserId, userId)
                 .eq(DailyRecord::getRecordDate, date);
         DailyRecord record = dailyRecordMapper.selectOne(wrapper);
-        int isWorkday = isTodayRestDay(date, config.getWorkDays()) ? 0 : 1;
+        int isWorkday = isRestDay(date, config.getWorkDays(), config.getWorkDateOverrides()) ? 0 : 1;
         if (record == null) {
             record = new DailyRecord();
             record.setUserId(userId);
