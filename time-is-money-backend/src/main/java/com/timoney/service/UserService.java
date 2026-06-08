@@ -6,9 +6,11 @@ import com.timoney.dto.EarningsDTO;
 import com.timoney.entity.DailyRecord;
 import com.timoney.entity.User;
 import com.timoney.entity.UserConfig;
+import com.timoney.entity.UserPrefs;
 import com.timoney.mapper.DailyRecordMapper;
 import com.timoney.mapper.UserConfigMapper;
 import com.timoney.mapper.UserMapper;
+import com.timoney.mapper.UserPrefsMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,11 +27,13 @@ public class UserService {
     private final UserMapper userMapper;
     private final UserConfigMapper configMapper;
     private final DailyRecordMapper dailyRecordMapper;
+    private final UserPrefsMapper prefsMapper;
 
-    public UserService(UserMapper userMapper, UserConfigMapper configMapper, DailyRecordMapper dailyRecordMapper) {
+    public UserService(UserMapper userMapper, UserConfigMapper configMapper, DailyRecordMapper dailyRecordMapper, UserPrefsMapper prefsMapper) {
         this.userMapper = userMapper;
         this.configMapper = configMapper;
         this.dailyRecordMapper = dailyRecordMapper;
+        this.prefsMapper = prefsMapper;
     }
 
     @Transactional
@@ -62,7 +66,18 @@ public class UserService {
     public UserConfig getConfig(Long userId) {
         LambdaQueryWrapper<UserConfig> wrapper = new LambdaQueryWrapper<UserConfig>()
                 .eq(UserConfig::getUserId, userId);
-        return configMapper.selectOne(wrapper);
+        UserConfig config = configMapper.selectOne(wrapper);
+        if (config != null) {
+            UserPrefs prefs = prefsMapper.selectById(userId);
+            if (prefs != null) {
+                config.setWorkDays(prefs.getWorkDays());
+                config.setWorkDateOverrides(prefs.getWorkDateOverrides());
+            } else {
+                int wd = config.getWorkDaysPerWeek() != null ? config.getWorkDaysPerWeek() : 5;
+                config.setWorkDays(String.join(",", java.util.stream.IntStream.rangeClosed(1, wd).mapToObj(String::valueOf).toArray(String[]::new)));
+            }
+        }
+        return config;
     }
 
     @Transactional
@@ -83,13 +98,26 @@ public class UserService {
         config.setLunchStart(dto.getLunchStart());
         config.setLunchEnd(dto.getLunchEnd());
         config.setWorkDaysPerWeek(dto.getWorkDaysPerWeek());
-        config.setWorkDays(dto.getWorkDays());
-        config.setWorkDateOverrides(dto.getWorkDateOverrides());
 
         if (config.getId() == null) {
             configMapper.insert(config);
         } else {
             configMapper.updateById(config);
+        }
+
+        if (dto.getWorkDays() != null) {
+            UserPrefs prefs = prefsMapper.selectById(userId);
+            if (prefs == null) {
+                prefs = new UserPrefs();
+                prefs.setUserId(userId);
+                prefs.setWorkDays(dto.getWorkDays());
+                prefs.setWorkDateOverrides(dto.getWorkDateOverrides());
+                prefsMapper.insert(prefs);
+            } else {
+                prefs.setWorkDays(dto.getWorkDays());
+                prefs.setWorkDateOverrides(dto.getWorkDateOverrides());
+                prefsMapper.updateById(prefs);
+            }
         }
     }
 
@@ -194,6 +222,9 @@ public class UserService {
 
     private int countWorkDays(String workDays) {
         if (workDays == null || workDays.isBlank()) return 5;
+        if (!workDays.contains(",")) {
+            try { return Integer.parseInt(workDays.trim()); } catch (NumberFormatException e) { return 5; }
+        }
         return (int) Arrays.stream(workDays.split(","))
                 .filter(s -> !s.isBlank())
                 .count();
@@ -220,6 +251,10 @@ public class UserService {
         }
         // Fall back to weekday check
         if (workDays == null || workDays.isBlank()) return false;
+        // If workDays is just a number (e.g. "5"), treat as backward-compat workDaysPerWeek
+        if (!workDays.contains(",")) {
+            try { return today.getDayOfWeek().getValue() > Integer.parseInt(workDays.trim()); } catch (NumberFormatException e) { return false; }
+        }
         Set<Integer> days = Arrays.stream(workDays.split(","))
                 .map(String::trim)
                 .filter(s -> !s.isEmpty())

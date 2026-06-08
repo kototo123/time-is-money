@@ -19,7 +19,9 @@ public class UserConfig {
     private LocalTime lunchStart;
     private LocalTime lunchEnd;
     private Integer workDaysPerWeek;
+    @TableField(exist = false)
     private String workDays;
+    @TableField(exist = false)
     private String workDateOverrides;
 
     @TableField(fill = FieldFill.INSERT)
