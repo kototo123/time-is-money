@@ -9,7 +9,7 @@ import java.time.LocalDateTime;
 
 @TableName("user_prefs")
 public class UserPrefs {
-    @TableId
+    @TableId(type = IdType.INPUT)
     private Long userId;
     private String workDays;
     private String workDateOverrides;
