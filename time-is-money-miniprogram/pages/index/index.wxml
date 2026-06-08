@@ -1,51 +1,132 @@
-<view class="container">
-  <view class="header">
-    <text class="greeting">{{greeting}}</text>
-    <text class="date">{{today}}</text>
-  </view>
-
-  <view class="money-card">
-    <text class="money-label">今日已赚</text>
-    <view class="money-roll">
-      <text class="symbol">¥</text>
-      <view wx:for="{{moneyChars}}" wx:key="id" class="char-box {{item.dot ? 'dot-box' : ''}}">
-        <text wx:if="{{!item.dot}}" class="char {{item.changed ? 'roll-in' : ''}}">{{item.ch}}</text>
-        <text wx:else class="char dot-char">.</text>
+<view class="page-root {{isRestDay ? 'is-rest-day' : ''}}">
+  <view class="container">
+    <view class="header">
+      <view class="header-row">
+        <view>
+          <text class="greeting">{{greeting}}</text>
+          <text class="date">{{today}}</text>
+        </view>
+        <view style="display: flex; gap: 12rpx;">
+          <text class="eye-btn" bindtap="toggleMoney">{{moneyVisible ? '👁' : '👁‍🗨'}}</text>
+          <text class="eye-btn" bindtap="openReport">📊</text>
+        </view>
       </view>
     </view>
-    <view class="progress-bar">
-      <view class="progress-fill" style="width: {{percentage}}%"></view>
-    </view>
-    <text class="progress-text">已完成 {{percentageStr}}%</text>
-  </view>
 
-  <view class="info-row">
-    <view class="info-item">
-      <text class="info-label">今日目标</text>
-      <text class="info-value">¥{{dailyTotal}}</text>
+    <view class="money-card {{isRestDay ? 'rest-day-card' : ''}}">
+      <text class="money-label">{{isRestDay ? '今天休息' : '今日已赚'}}</text>
+      <view wx:if="{{isRestDay}}" class="rest-day-msg">
+        <text class="rest-day-icon">🌊</text>
+        <text class="rest-day-text">好好放松，满血复活</text>
+      </view>
+      <view wx:elif="{{moneyVisible}}" class="money-roll">
+        <text class="symbol">¥</text>
+        <view wx:for="{{moneyChars}}" wx:key="id" class="char-box {{item.dot ? 'dot-box' : ''}}">
+          <text wx:if="{{!item.dot}}" class="char {{item.changed ? 'roll-in' : ''}}">{{item.ch}}</text>
+          <text wx:else class="char dot-char">.</text>
+        </view>
+      </view>
+      <view wx:else class="money-roll">
+        <text class="symbol">¥</text>
+        <text class="char hidden-amount">******</text>
+      </view>
+      <view class="progress-bar" wx:if="{{!isRestDay}}">
+        <view class="progress-fill" style="width: {{percentage}}%"></view>
+      </view>
+      <text class="progress-text" wx:if="{{!isRestDay}}">已完成 {{percentageStr}}%</text>
     </view>
-    <view class="info-item">
-      <text class="info-label">每秒入账</text>
-      <text class="info-value">¥{{perSecondStr}}</text>
-    </view>
-  </view>
 
-  <view class="countdown-card {{isWorkTime ? '' : 'is-off-duty'}}">
-    <text class="countdown-label">{{countdownLabel}}</text>
-    <view class="countdown-roll">
-      <view wx:for="{{cdChars}}" wx:key="id" class="char-box {{item.ch === ':' ? 'colon-box' : ''}}">
-        <text wx:if="{{item.ch !== ':'}}" class="char {{item.changed ? 'roll-in' : ''}}">{{item.ch}}</text>
-        <text wx:else class="char colon-char">:</text>
+    <view class="info-row" wx:if="{{!isRestDay && moneyVisible}}">
+      <view class="info-item">
+        <text class="info-label">今日目标</text>
+        <text class="info-value">¥{{dailyTotal}}</text>
+      </view>
+      <view class="info-item">
+        <text class="info-label">每秒入账</text>
+        <text class="info-value">¥{{perSecondStr}}</text>
       </view>
     </view>
-    <text class="countdown-status">{{statusText}}</text>
+    <view class="info-row" wx:elif="{{!isRestDay}}">
+      <view class="info-item">
+        <text class="info-label">今日目标</text>
+        <text class="info-value">******</text>
+      </view>
+      <view class="info-item">
+        <text class="info-label">每秒入账</text>
+        <text class="info-value">******</text>
+      </view>
+    </view>
+
+    <view class="countdown-card {{isWorkTime ? '' : 'is-off-duty'}}">
+      <text class="countdown-label">{{countdownLabel}}</text>
+      <view class="countdown-roll">
+        <view wx:for="{{cdChars}}" wx:key="id" class="char-box {{item.ch === ':' ? 'colon-box' : ''}}">
+          <text wx:if="{{item.ch !== ':'}}" class="char {{item.changed ? 'roll-in' : ''}}">{{item.ch}}</text>
+          <text wx:else class="char colon-char">:</text>
+        </view>
+      </view>
+      <text class="countdown-status">{{statusText}}</text>
+    </view>
+
+    <view class="goal-card" wx:if="{{goalEnabled && goalAmount}}">
+      <text class="goal-label">🎯 {{goalName || '自定义目标'}}</text>
+      <view class="goal-progress">
+        <view class="goal-fill" style="width: {{goalPct}}%"></view>
+      </view>
+      <text class="goal-text" wx:if="{{moneyVisible}}">{{goalEarnedStr}} / {{goalAmount}} 元（{{goalPctStr}}%）</text>
+      <text class="goal-text" wx:else>****** / {{goalAmount}} 元</text>
+    </view>
+
+    <view class="error-tip" wx:if="{{error}}">
+      <text>⚠️ {{error}}</text>
+    </view>
+
+    <view class="fish-tip" bindtap="toggleFish">
+      <text>{{fishText}}</text>
+    </view>
   </view>
 
-  <view class="error-tip" wx:if="{{error}}">
-    <text>⚠️ {{error}}</text>
+  <view class="coin-layer">
+    <view wx:for="{{coins}}" wx:key="id" class="coin {{item.type}}" style="left: {{item.left}}; animation-delay: {{item.delay}}; animation-duration: {{item.duration}}; width: {{item.size}}; height: {{item.size}};">
+      <text wx:if="{{item.type === 'gold'}}">¥</text>
+      <text wx:elif="{{item.type === 'copper'}}">¢</text>
+      <text wx:elif="{{item.type === 'silver'}}">¥</text>
+      <text wx:else>💰</text>
+    </view>
   </view>
 
-  <view class="fish-tip" bindtap="toggleFish">
-    <text>{{fishText}}</text>
+  <view class="confetti-layer" wx:if="{{celebration}}">
+    <view wx:for="{{confetti}}" wx:key="id" class="confetti {{item.type}}" style="left: {{item.left}}; animation-delay: {{item.delay}}; animation-duration: {{item.duration}}; background: {{item.color}}; width: {{item.size}}; height: {{item.size}};"></view>
+  </view>
+
+  <view class="report-mask" wx:if="{{showReport}}" bindtap="closeReport"></view>
+  <view class="report-modal" wx:if="{{showReport}}">
+    <view class="report-card">
+      <text class="report-title">📋 今日摸鱼报告</text>
+      <text class="report-date">{{reportDate}}</text>
+      <view class="report-divider"></view>
+      <view class="report-row">
+        <text class="report-label">今日已赚</text>
+        <text class="report-value">¥{{reportEarned}}</text>
+      </view>
+      <view class="report-row">
+        <text class="report-label">完成进度</text>
+        <text class="report-value">{{reportPct}}%</text>
+      </view>
+      <view class="report-row">
+        <text class="report-label">每秒入账</text>
+        <text class="report-value">¥{{reportPerSec}}</text>
+      </view>
+      <view class="report-row">
+        <text class="report-label">当前状态</text>
+        <text class="report-value">{{reportStatus}}</text>
+      </view>
+      <view class="report-divider"></view>
+      <view class="report-actions">
+        <button class="report-btn share-friend" open-type="share">分享给好友</button>
+        <button class="report-btn share-moment" open-type="shareTimeline">分享朋友圈</button>
+      </view>
+      <text class="report-close" bindtap="closeReport">关闭</text>
+    </view>
   </view>
 </view>

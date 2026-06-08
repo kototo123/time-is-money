@@ -9,6 +9,7 @@ public class EarningsDTO {
     private long remainingSeconds;
     private Boolean isWorkTime;
     private BigDecimal perSecond;
+    private Boolean isRestDay;
 
     public EarningsDTO(BigDecimal todayEarned, BigDecimal todayTotal, BigDecimal percentage, long remainingSeconds, Boolean isWorkTime) {
         this.todayEarned = todayEarned;
@@ -39,4 +40,6 @@ public class EarningsDTO {
     public void setIsWorkTime(Boolean isWorkTime) { this.isWorkTime = isWorkTime; }
     public BigDecimal getPerSecond() { return perSecond; }
     public void setPerSecond(BigDecimal perSecond) { this.perSecond = perSecond; }
+    public Boolean getIsRestDay() { return isRestDay; }
+    public void setIsRestDay(Boolean isRestDay) { this.isRestDay = isRestDay; }
 }

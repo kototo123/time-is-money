@@ -15,6 +15,7 @@ public class ConfigDTO {
     private LocalTime lunchStart;
     private LocalTime lunchEnd;
     private Integer workDaysPerWeek;
+    private String workDays;
 
     public String getSalaryType() { return salaryType; }
     public void setSalaryType(String salaryType) { this.salaryType = salaryType; }
@@ -34,4 +35,6 @@ public class ConfigDTO {
     public void setLunchEnd(LocalTime lunchEnd) { this.lunchEnd = lunchEnd; }
     public Integer getWorkDaysPerWeek() { return workDaysPerWeek; }
     public void setWorkDaysPerWeek(Integer workDaysPerWeek) { this.workDaysPerWeek = workDaysPerWeek; }
+    public String getWorkDays() { return workDays; }
+    public void setWorkDays(String workDays) { this.workDays = workDays; }
 }

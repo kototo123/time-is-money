@@ -1,67 +1,127 @@
 <view class="container">
   <view class="section">
-    <text class="section-title">薪资设置</text>
-
-    <view class="form-group">
-      <text class="label">薪资类型</text>
-      <view class="radio-group">
-        <view class="radio-item {{salaryType === 'MONTHLY' ? 'active' : ''}}" data-type="MONTHLY" bindtap="setType">月薪</view>
-        <view class="radio-item {{salaryType === 'HOURLY' ? 'active' : ''}}" data-type="HOURLY" bindtap="setType">时薪</view>
+    <view class="section-header">
+      <text class="section-icon">💰</text>
+      <text class="section-title">薪资设置</text>
+    </view>
+    <view class="radio-group">
+      <view class="radio-item {{salaryType === 'MONTHLY' ? 'active' : ''}}" data-type="MONTHLY" bindtap="setType">月薪</view>
+      <view class="radio-item {{salaryType === 'HOURLY' ? 'active' : ''}}" data-type="HOURLY" bindtap="setType">时薪</view>
+    </view>
+    <input wx:if="{{salaryType === 'MONTHLY'}}" class="input" type="digit" value="{{monthlySalary}}" bindinput="onInput" data-field="monthlySalary" placeholder="月薪金额" />
+    <input wx:if="{{salaryType === 'HOURLY'}}" class="input" type="digit" value="{{hourlyRate}}" bindinput="onInput" data-field="hourlyRate" placeholder="时薪金额" />
+    <view class="row-fields">
+      <view class="field-half">
+        <text class="field-label">每天</text>
+        <input class="input-sm" type="digit" value="{{dailyWorkHours}}" bindinput="onInput" data-field="dailyWorkHours" placeholder="8" />
+        <text class="field-unit">小时</text>
       </view>
     </view>
+  </view>
 
-    <view class="form-group" wx:if="{{salaryType === 'MONTHLY'}}">
-      <text class="label">月薪 (元)</text>
-      <input class="input" type="digit" value="{{monthlySalary}}" bindinput="onInput" data-field="monthlySalary" placeholder="请输入月薪" />
+  <view class="section">
+    <view class="section-header">
+      <text class="section-icon">📅</text>
+      <text class="section-title">工作日</text>
     </view>
-
-    <view class="form-group" wx:if="{{salaryType === 'HOURLY'}}">
-      <text class="label">时薪 (元)</text>
-      <input class="input" type="digit" value="{{hourlyRate}}" bindinput="onInput" data-field="hourlyRate" placeholder="请输入时薪" />
+    <text class="cal-hint">点击日期切换工作日/休息日，点表头批量选</text>
+    <view class="cal-nav">
+      <text class="cal-nav-btn" bindtap="prevMonth">◀</text>
+      <text class="cal-nav-title">{{calendarYear}}年{{calendarMonth}}月</text>
+      <text class="cal-nav-btn" bindtap="nextMonth">▶</text>
     </view>
-
-    <view class="form-group">
-      <text class="label">每日工作小时数</text>
-      <input class="input" type="digit" value="{{dailyWorkHours}}" bindinput="onInput" data-field="dailyWorkHours" placeholder="默认8小时" />
+    <view class="cal-weekday-row">
+      <view wx:for="{{weekdayNames}}" wx:key="index" class="cal-weekday-cell cal-weekday-header {{workDays.indexOf(index+1) > -1 ? 'on' : 'off'}}" data-dow="{{index+1}}" bindtap="toggleWeekday">
+        <text>{{item}}</text>
+      </view>
     </view>
-
-    <view class="form-group">
-      <text class="label">每周工作天数</text>
-      <picker mode="selector" range="{{workDaysOptions}}" range-key="label" value="{{workDaysIndex}}" bindchange="onWorkDaysChange">
-        <view class="picker">{{workDaysOptions[workDaysIndex].label}}</view>
-      </picker>
+    <view wx:for="{{calendarWeeks}}" wx:key="index" class="cal-week-row">
+      <view wx:for="{{item}}" wx:for-item="day" wx:key="date" class="cal-day-cell {{day.date ? '' : 'empty'}} {{day.isWork ? 'work' : 'rest'}} {{day.isToday ? 'today' : ''}}" data-dow="{{day.dow}}" bindtap="{{day.date ? 'toggleDay' : ''}}">
+        <text wx:if="{{day.date}}">{{day.date}}</text>
+      </view>
     </view>
   </view>
 
   <view class="section">
-    <text class="section-title">工作时间</text>
-    <view class="form-group">
-      <text class="label">上班时间</text>
-      <picker mode="time" value="{{workStartTime}}" bindchange="onTimeChange" data-field="workStartTime">
-        <view class="picker">{{workStartTime || '选择时间'}}</view>
-      </picker>
+    <view class="section-header">
+      <text class="section-icon">⏰</text>
+      <text class="section-title">工作时间</text>
     </view>
-    <view class="form-group">
-      <text class="label">下班时间</text>
-      <picker mode="time" value="{{workEndTime}}" bindchange="onTimeChange" data-field="workEndTime">
-        <view class="picker">{{workEndTime || '选择时间'}}</view>
-      </picker>
+    <view class="row-fields">
+      <view class="field-half">
+        <text class="field-label">上班</text>
+        <picker mode="time" value="{{workStartTime}}" bindchange="onTimeChange" data-field="workStartTime">
+          <view class="input-sm picker-sm">{{workStartTime || '选择'}}</view>
+        </picker>
+      </view>
+      <view class="field-half">
+        <text class="field-label">下班</text>
+        <picker mode="time" value="{{workEndTime}}" bindchange="onTimeChange" data-field="workEndTime">
+          <view class="input-sm picker-sm">{{workEndTime || '选择'}}</view>
+        </picker>
+      </view>
+    </view>
+    <view class="row-fields" style="margin-top: 20rpx;">
+      <view class="field-half">
+        <text class="field-label">午休开始</text>
+        <picker mode="time" value="{{lunchStart}}" bindchange="onTimeChange" data-field="lunchStart">
+          <view class="input-sm picker-sm">{{lunchStart || '12:00'}}</view>
+        </picker>
+      </view>
+      <view class="field-half">
+        <text class="field-label">午休结束</text>
+        <picker mode="time" value="{{lunchEnd}}" bindchange="onTimeChange" data-field="lunchEnd">
+          <view class="input-sm picker-sm">{{lunchEnd || '13:00'}}</view>
+        </picker>
+      </view>
     </view>
   </view>
 
   <view class="section">
-    <text class="section-title">午休时间</text>
-    <view class="form-group">
-      <text class="label">午休开始</text>
-      <picker mode="time" value="{{lunchStart}}" bindchange="onTimeChange" data-field="lunchStart">
-        <view class="picker">{{lunchStart || '12:00'}}</view>
-      </picker>
+    <view class="section-header">
+      <text class="section-icon">🎨</text>
+      <text class="section-title">显示设置</text>
     </view>
-    <view class="form-group">
-      <text class="label">午休结束</text>
-      <picker mode="time" value="{{lunchEnd}}" bindchange="onTimeChange" data-field="lunchEnd">
-        <view class="picker">{{lunchEnd || '13:00'}}</view>
-      </picker>
+    <view class="row-fields">
+      <view class="field-half">
+        <text class="field-label">小数位数</text>
+        <picker mode="selector" range="{{decimalOptions}}" range-key="label" value="{{decimalIndex}}" bindchange="onDecimalChange">
+          <view class="input-sm picker-sm">{{decimalOptions[decimalIndex].label}}</view>
+        </picker>
+      </view>
+      <view class="field-half">
+        <text class="field-label">金币频率</text>
+        <picker mode="selector" range="{{coinThresholdOptions}}" range-key="label" value="{{coinThresholdIndex}}" bindchange="onCoinThresholdChange">
+          <view class="input-sm picker-sm">{{coinThresholdOptions[coinThresholdIndex].label}}</view>
+        </picker>
+      </view>
+    </view>
+    <view class="row-fields" style="margin-top: 20rpx;">
+      <view class="field-half">
+        <text class="field-label">默认隐藏金额</text>
+      </view>
+      <view class="field-half" style="align-items: flex-end;">
+        <switch checked="{{hideMoney}}" bindchange="onHideMoneyChange" style="transform: scale(0.8);"></switch>
+      </view>
+    </view>
+  </view>
+
+  <view class="section">
+    <view class="section-header">
+      <text class="section-icon">🎯</text>
+      <text class="section-title">自定义目标</text>
+    </view>
+    <view class="row-fields" style="margin-bottom: 20rpx;">
+      <view class="field-half">
+        <text class="field-label">启用目标</text>
+      </view>
+      <view class="field-half" style="align-items: flex-end;">
+        <switch checked="{{goalEnabled}}" bindchange="onGoalEnabledChange" style="transform: scale(0.8);"></switch>
+      </view>
+    </view>
+    <view wx:if="{{goalEnabled}}">
+      <input class="input" type="text" value="{{goalName}}" bindinput="onInput" data-field="goalName" placeholder="目标名称，如：买机械键盘" />
+      <input class="input" type="digit" value="{{goalAmount}}" bindinput="onInput" data-field="goalAmount" placeholder="目标金额，如：500" />
     </view>
   </view>
 

@@ -15,6 +15,9 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.*;
+import java.util.Arrays;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 public class UserService {
@@ -50,6 +53,7 @@ public class UserService {
             config.setLunchStart(LocalTime.of(12, 0));
             config.setLunchEnd(LocalTime.of(13, 0));
             config.setWorkDaysPerWeek(5);
+            config.setWorkDays("1,2,3,4,5");
             configMapper.insert(config);
         }
         return user;
@@ -79,6 +83,7 @@ public class UserService {
         config.setLunchStart(dto.getLunchStart());
         config.setLunchEnd(dto.getLunchEnd());
         config.setWorkDaysPerWeek(dto.getWorkDaysPerWeek());
+        config.setWorkDays(dto.getWorkDays());
 
         if (config.getId() == null) {
             configMapper.insert(config);
@@ -101,6 +106,15 @@ public class UserService {
 
         if (start == null || end == null) {
             return new EarningsDTO(BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, 0L, false, BigDecimal.ZERO);
+        }
+
+        boolean isRestDay = isTodayRestDay(today, config.getWorkDays());
+
+        if (isRestDay) {
+            BigDecimal dailyTotal = calcDailyTotal(config);
+            EarningsDTO dto = new EarningsDTO(BigDecimal.ZERO, dailyTotal, BigDecimal.ZERO, 0L, false, BigDecimal.ZERO);
+            dto.setIsRestDay(true);
+            return dto;
         }
 
         BigDecimal dailyTotal = calcDailyTotal(config);
@@ -131,9 +145,11 @@ public class UserService {
                 ? earned.multiply(new BigDecimal("100")).divide(dailyTotal, 2, RoundingMode.HALF_UP)
                 : BigDecimal.ZERO;
 
-        updateDailyRecord(userId, today, earned);
+        updateDailyRecord(userId, today, earned, config);
 
-        return new EarningsDTO(earned, dailyTotal, percentage, remainingSeconds, isWorkTime, perSecond);
+        EarningsDTO dto = new EarningsDTO(earned, dailyTotal, percentage, remainingSeconds, isWorkTime, perSecond);
+        dto.setIsRestDay(false);
+        return dto;
     }
 
     private boolean isDuringLunch(UserConfig config, LocalTime now) {
@@ -175,10 +191,26 @@ public class UserService {
         return Math.max(elapsed, 0);
     }
 
+    private int countWorkDays(String workDays) {
+        if (workDays == null || workDays.isBlank()) return 5;
+        return (int) Arrays.stream(workDays.split(","))
+                .filter(s -> !s.isBlank())
+                .count();
+    }
+
+    private boolean isTodayRestDay(LocalDate today, String workDays) {
+        if (workDays == null || workDays.isBlank()) return false;
+        Set<Integer> days = Arrays.stream(workDays.split(","))
+                .map(String::trim)
+                .filter(s -> !s.isEmpty())
+                .map(Integer::parseInt)
+                .collect(Collectors.toSet());
+        return !days.contains(today.getDayOfWeek().getValue());
+    }
+
     private BigDecimal calcDailyTotal(UserConfig config) {
         if ("MONTHLY".equals(config.getSalaryType()) && config.getMonthlySalary() != null) {
-            int daysPerWeek = config.getWorkDaysPerWeek() != null && config.getWorkDaysPerWeek() > 0
-                    ? config.getWorkDaysPerWeek() : 5;
+            int daysPerWeek = countWorkDays(config.getWorkDays());
             double monthlyWorkDays = daysPerWeek * 52.0 / 12.0;
             return config.getMonthlySalary().divide(new BigDecimal(monthlyWorkDays), 2, RoundingMode.HALF_UP);
         } else if ("HOURLY".equals(config.getSalaryType()) && config.getHourlyRate() != null) {
@@ -188,20 +220,22 @@ public class UserService {
         return BigDecimal.ZERO;
     }
 
-    private void updateDailyRecord(Long userId, LocalDate date, BigDecimal earned) {
+    private void updateDailyRecord(Long userId, LocalDate date, BigDecimal earned, UserConfig config) {
         LambdaQueryWrapper<DailyRecord> wrapper = new LambdaQueryWrapper<DailyRecord>()
                 .eq(DailyRecord::getUserId, userId)
                 .eq(DailyRecord::getRecordDate, date);
         DailyRecord record = dailyRecordMapper.selectOne(wrapper);
+        int isWorkday = isTodayRestDay(date, config.getWorkDays()) ? 0 : 1;
         if (record == null) {
             record = new DailyRecord();
             record.setUserId(userId);
             record.setRecordDate(date);
             record.setTotalEarned(earned);
-            record.setIsWorkday(1);
+            record.setIsWorkday(isWorkday);
             dailyRecordMapper.insert(record);
         } else {
             record.setTotalEarned(earned);
+            record.setIsWorkday(isWorkday);
             dailyRecordMapper.updateById(record);
         }
     }

@@ -19,6 +19,7 @@ public class UserConfig {
     private LocalTime lunchStart;
     private LocalTime lunchEnd;
     private Integer workDaysPerWeek;
+    private String workDays;
 
     @TableField(fill = FieldFill.INSERT)
     private LocalDateTime createdAt;
@@ -48,6 +49,8 @@ public class UserConfig {
     public void setLunchEnd(LocalTime lunchEnd) { this.lunchEnd = lunchEnd; }
     public Integer getWorkDaysPerWeek() { return workDaysPerWeek; }
     public void setWorkDaysPerWeek(Integer workDaysPerWeek) { this.workDaysPerWeek = workDaysPerWeek; }
+    public String getWorkDays() { return workDays; }
+    public void setWorkDays(String workDays) { this.workDays = workDays; }
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
     public LocalDateTime getUpdatedAt() { return updatedAt; }

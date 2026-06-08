@@ -20,6 +20,10 @@ CREATE TABLE `user_config` (
   `daily_work_hours` DECIMAL(4,2) DEFAULT 8 COMMENT '每日工作小时数',
   `work_start_time` TIME DEFAULT '09:00:00',
   `work_end_time` TIME DEFAULT '18:00:00',
+  `lunch_start` TIME DEFAULT '12:00:00',
+  `lunch_end` TIME DEFAULT '13:00:00',
+  `work_days_per_week` INT DEFAULT 5,
+  `work_days` VARCHAR(20) DEFAULT '1,2,3,4,5',
   `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
   `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   FOREIGN KEY (user_id) REFERENCES `user`(id)

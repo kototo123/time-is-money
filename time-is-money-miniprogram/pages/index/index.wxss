@@ -59,3 +59,69 @@
   text-align: center; margin-bottom: 20rpx; font-size: 24rpx; color: #ff6b6b;
 }
 .fish-tip { text-align: center; padding: 20rpx; font-size: 28rpx; color: #8888aa; }
+
+.page-root { min-height: 100vh; }
+
+/* === Eye toggle === */
+.header-row { display: flex; justify-content: space-between; align-items: flex-start; }
+.eye-btn { font-size: 40rpx; padding: 8rpx; cursor: pointer; }
+.hidden-amount { letter-spacing: 6rpx; }
+
+.goal-card { background: #1a1a2e; border-radius: 20rpx; padding: 24rpx 30rpx; margin-bottom: 30rpx; border: 1px solid rgba(255,215,0,0.15); }
+.goal-label { font-size: 28rpx; color: #ffd700; display: block; margin-bottom: 16rpx; }
+.goal-progress { height: 12rpx; background: #333; border-radius: 6rpx; overflow: hidden; margin-bottom: 12rpx; }
+.goal-fill { height: 100%; background: linear-gradient(90deg, #ffd700, #ff8c00); border-radius: 6rpx; }
+.goal-text { font-size: 24rpx; color: #8888aa; }
+
+/* === Confetti celebration === */
+.confetti-layer { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 1000; overflow: hidden; }
+.confetti { position: absolute; top: -20rpx; animation: confettiFall ease-out forwards; opacity: 0.9; }
+.confetti.circle { border-radius: 50%; }
+.confetti.square { border-radius: 2rpx; }
+@keyframes confettiFall {
+  0% { transform: translateY(-20rpx) rotate(0deg); opacity: 1; }
+  100% { transform: translateY(110vh) rotate(720deg); opacity: 0; }
+}
+
+/* === Report modal === */
+.report-mask { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 1100; }
+.report-modal { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 1101; width: 600rpx; }
+.report-card { background: #1a1a2e; border-radius: 24rpx; padding: 40rpx; border: 1px solid rgba(0,212,255,0.2); }
+.report-title { font-size: 36rpx; font-weight: bold; color: #00d4ff; display: block; text-align: center; margin-bottom: 8rpx; }
+.report-date { font-size: 24rpx; color: #8888aa; display: block; text-align: center; margin-bottom: 20rpx; }
+.report-divider { height: 1px; background: rgba(255,255,255,0.08); margin: 20rpx 0; }
+.report-row { display: flex; justify-content: space-between; padding: 16rpx 0; }
+.report-label { font-size: 28rpx; color: #8888aa; }
+.report-value { font-size: 28rpx; color: #ffd700; font-weight: bold; }
+.report-actions { display: flex; gap: 20rpx; margin-top: 10rpx; }
+.report-btn { flex: 1; height: 72rpx; line-height: 72rpx; border-radius: 36rpx; font-size: 26rpx; text-align: center; border: none; color: #fff; padding: 0; }
+.report-btn.share-friend { background: linear-gradient(135deg, #00d4ff, #0077ff); }
+.report-btn.share-moment { background: linear-gradient(135deg, #ffd700, #ff8c00); }
+.report-close { display: block; text-align: center; font-size: 26rpx; color: #8888aa; margin-top: 24rpx; padding: 10rpx; }
+
+.coin-layer { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 999; overflow: hidden; }
+.coin { position: absolute; top: -60rpx; animation-name: coinFall; animation-timing-function: linear; animation-fill-mode: forwards; display: flex; align-items: center; justify-content: center; border-radius: 50%; }
+.coin.gold { background: radial-gradient(circle at 35% 35%, #ffd700, #daa520); border: 2rpx solid #b8860b; color: #8b4513; font-weight: bold; font-size: 70%; box-shadow: 0 0 8rpx rgba(218,165,32,0.6); }
+.coin.copper { background: radial-gradient(circle at 35% 35%, #cd7f32, #8b4513); border: 2rpx solid #654321; color: #ffd700; font-weight: bold; font-size: 65%; }
+.coin.silver { background: radial-gradient(circle at 35% 35%, #e8e8e8, #a0a0a0); border: 2rpx solid #808080; color: #333; font-weight: bold; font-size: 70%; box-shadow: 0 0 8rpx rgba(160,160,160,0.5); }
+.coin.bag { background: none; border: none; font-size: 90%; }
+.coin text { display: block; text-align: center; line-height: 1; }
+@keyframes coinFall {
+  0% { transform: translateY(-60rpx) rotate(0deg); opacity: 1; }
+  80% { opacity: 1; }
+  100% { transform: translateY(2000rpx) rotate(360deg); opacity: 0; }
+}
+
+/* === Rest day === */
+.page-root.is-rest-day { background: linear-gradient(180deg, #0f0f23 0%, #1a1a2e 50%, #0f1923 100%); }
+.is-rest-day .greeting { color: #ff7eb3; }
+.is-rest-day .date { color: #aa88aa; }
+.rest-day-card { background: linear-gradient(135deg, #1a1a2e, #2a1a3e) !important; border-color: rgba(255,126,179,0.2) !important; }
+.rest-day-msg { display: flex; flex-direction: column; align-items: center; padding: 30rpx 0; }
+.rest-day-icon { font-size: 80rpx; margin-bottom: 16rpx; }
+.rest-day-text { font-size: 32rpx; color: #ff7eb3; font-weight: bold; }
+.is-rest-day .countdown-card { border-color: rgba(255,126,179,0.25); }
+.is-rest-day .countdown-label { color: #ff7eb3; }
+.is-rest-day .countdown-status { color: #ff7eb3; }
+.is-rest-day .header-row .eye-btn { color: #ff7eb3; }
+.is-rest-day .fish-tip { color: #aa88aa; }
