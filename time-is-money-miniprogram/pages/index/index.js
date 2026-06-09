@@ -41,14 +41,21 @@ function formatCountdown(secs) {
   const s = secs % 60
   return pad(h) + ':' + pad(m) + ':' + pad(s)
 }
-function getGreeting() {
-  const h = new Date().getHours()
+function toMin(t) { return t.h * 60 + t.m }
+function getGreeting(config) {
+  const now = new Date()
+  const h = now.getHours(), m = now.getMinutes()
+  const cur = h * 60 + m
   if (h < 6) return '夜深了，还在加班？'
-  if (h < 9) return '早上好，摸鱼人！'
-  if (h < 12) return '上午好，摸鱼要低调'
-  if (h < 14) return '中午好，吃饱再摸鱼'
-  if (h < 18) return '下午好，胜利在望'
-  return '下班快乐！'
+  if (!config) return cur < 12 ? '上午好' : '下午好'
+  const start = toMin(config.workStart), end = toMin(config.workEnd)
+  const lunchS = toMin(config.lunchStart), lunchE = toMin(config.lunchEnd)
+  if (cur < start) return '还没到上班时间，早安'
+  if (cur >= lunchS && cur < lunchE) return '午休时间，好好休息'
+  if (cur >= end) return ''
+  if (cur >= end - 120) return '胜利在望！'
+  if (cur < lunchS) return '上午好，摸鱼要低调'
+  return '下午好，加油摸鱼'
 }
 function getToday() {
   const d = new Date()
@@ -99,6 +106,7 @@ Page({
     reportStatus: '',
     reportDate: '',
     isRestDay: false,
+    workSchedule: null,
   },
 
   syncGoal() {
@@ -135,10 +143,24 @@ Page({
     })
   },
 
+  fetchConfig() {
+    const app = getApp()
+    api.getConfig(app.globalData.userId).then(cfg => {
+      if (!cfg) return
+      this.data.workSchedule = {
+        workStart: { h: parseInt(cfg.workStartTime?.slice(0,2)), m: parseInt(cfg.workStartTime?.slice(3,5)) },
+        workEnd: { h: parseInt(cfg.workEndTime?.slice(0,2)), m: parseInt(cfg.workEndTime?.slice(3,5)) },
+        lunchStart: { h: parseInt(cfg.lunchStart?.slice(0,2)), m: parseInt(cfg.lunchStart?.slice(3,5)) },
+        lunchEnd: { h: parseInt(cfg.lunchEnd?.slice(0,2)), m: parseInt(cfg.lunchEnd?.slice(3,5)) },
+      }
+    })
+  },
+
   onLoad() {
     getApp().waitForLogin().then(() => {
       this.setData({ moneyVisible: !wx.getStorageSync('hideMoney') })
       this.syncGoal()
+      this.fetchConfig()
       this.fetchData()
       this.timer = setInterval(() => this.fetchData(), 3000)
       this.secondTimer = setInterval(() => this.tick(), 1000)
@@ -149,6 +171,8 @@ Page({
   onShow() {
     this.setData({ moneyVisible: !wx.getStorageSync('hideMoney') })
     this.syncGoal()
+    this.fetchConfig()
+    this.fetchData()
   },
 
   onUnload() {
@@ -239,9 +263,10 @@ Page({
       const restDay = data.isRestDay || false
       let label, status, greeting
       if (restDay) { label = '今天休息'; status = '休息日 🏖️'; greeting = '今天不用上班～ ☀️' }
-      else if (!isWork && remSecs > 0) { label = '距离上班'; status = '休息中 😴' }
+      else if (!isWork && remSecs > 0) { label = '距离上班'; status = '休息中 😴'; greeting = '还没到上班时间' }
       else if (isWork) { label = '距离下班'; status = '摸鱼中 🐟' }
-      else { label = '已经下班'; status = '自由时间 🎉' }
+      else { label = '已经下班'; status = '自由时间 🎉'; greeting = '下班快乐！' }
+      if (!greeting) greeting = getGreeting(this.data.workSchedule)
 
       const dp = getDp()
       const earnedNum = parseFloat(data.todayEarned) || 0

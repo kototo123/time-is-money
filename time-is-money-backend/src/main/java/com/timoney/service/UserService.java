@@ -68,16 +68,24 @@ public class UserService {
                 .eq(UserConfig::getUserId, userId);
         UserConfig config = configMapper.selectOne(wrapper);
         if (config != null) {
-            UserPrefs prefs = prefsMapper.selectById(userId);
-            if (prefs != null) {
-                config.setWorkDays(prefs.getWorkDays());
-                config.setWorkDateOverrides(prefs.getWorkDateOverrides());
-            } else {
-                int wd = config.getWorkDaysPerWeek() != null ? config.getWorkDaysPerWeek() : 5;
-                config.setWorkDays(String.join(",", java.util.stream.IntStream.rangeClosed(1, wd).mapToObj(String::valueOf).toArray(String[]::new)));
+            try {
+                UserPrefs prefs = prefsMapper.selectById(userId);
+                if (prefs != null) {
+                    config.setWorkDays(prefs.getWorkDays());
+                    config.setWorkDateOverrides(prefs.getWorkDateOverrides());
+                } else {
+                    fallbackWorkDays(config);
+                }
+            } catch (Exception e) {
+                fallbackWorkDays(config);
             }
         }
         return config;
+    }
+
+    private void fallbackWorkDays(UserConfig config) {
+        int wd = config.getWorkDaysPerWeek() != null ? config.getWorkDaysPerWeek() : 5;
+        config.setWorkDays(String.join(",", java.util.stream.IntStream.rangeClosed(1, wd).mapToObj(String::valueOf).toArray(String[]::new)));
     }
 
     @Transactional
@@ -106,17 +114,21 @@ public class UserService {
         }
 
         if (dto.getWorkDays() != null) {
-            UserPrefs prefs = prefsMapper.selectById(userId);
-            if (prefs == null) {
-                prefs = new UserPrefs();
-                prefs.setUserId(userId);
-                prefs.setWorkDays(dto.getWorkDays());
-                prefs.setWorkDateOverrides(dto.getWorkDateOverrides());
-                prefsMapper.insert(prefs);
-            } else {
-                prefs.setWorkDays(dto.getWorkDays());
-                prefs.setWorkDateOverrides(dto.getWorkDateOverrides());
-                prefsMapper.updateById(prefs);
+            try {
+                UserPrefs prefs = prefsMapper.selectById(userId);
+                if (prefs == null) {
+                    prefs = new UserPrefs();
+                    prefs.setUserId(userId);
+                    prefs.setWorkDays(dto.getWorkDays());
+                    prefs.setWorkDateOverrides(dto.getWorkDateOverrides());
+                    prefsMapper.insert(prefs);
+                } else {
+                    prefs.setWorkDays(dto.getWorkDays());
+                    prefs.setWorkDateOverrides(dto.getWorkDateOverrides());
+                    prefsMapper.updateById(prefs);
+                }
+            } catch (Exception e) {
+                // user_prefs is unavailable; skip
             }
         }
     }
