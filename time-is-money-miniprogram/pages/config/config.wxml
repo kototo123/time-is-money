@@ -1,4 +1,5 @@
 <view class="container">
+  <scroll-view class="scroll-content" scroll-y>
   <view class="section">
     <view class="section-header">
       <text class="section-icon">💰</text>
@@ -107,8 +108,11 @@
       <input class="input" type="digit" value="{{goalAmount}}" bindinput="onInput" data-field="goalAmount" placeholder="目标金额，如：500" />
     </view>
   </view>
+  </scroll-view>
 
-  <button class="save-btn" bindtap="handleSave">保存设置</button>
+  <view class="save-bar">
+    <button class="save-btn" bindtap="handleSave">保存设置</button>
+  </view>
 
   <!-- Calendar Modal -->
   <view class="cal-mask" wx:if="{{calOpen}}" bindtap="closeCal"></view>
