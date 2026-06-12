@@ -189,7 +189,7 @@ Page({
     const isWork = this.data.isWorkTime
     const dp = getDp()
 
-    if (rem > 0 && newRem <= 0) this.spawnConfetti()
+    if (this.data.isWorkTime && rem > 0 && newRem <= 0) this.spawnConfetti()
 
     const newCd = formatCountdown(newRem)
     const newCdChars = newCd.split('').map((ch, i) => {
@@ -258,7 +258,7 @@ Page({
     const app = getApp()
     api.getTodayEarnings(app.globalData.userId).then(data => {
       const isWork = data.isWorkTime
-      const remSecs = data.remainingSeconds
+      let remSecs = data.remainingSeconds
       const perSec = parseFloat(data.perSecond) || 0
       const restDay = data.isRestDay || false
       const sched = this.data.workSchedule
@@ -267,7 +267,11 @@ Page({
       const inLunch = sched && cur >= sched.lunchStart.m && cur < sched.lunchEnd.m
       let label, status, greeting
       if (restDay) { label = '今天休息'; status = '休息日 🏖️'; greeting = '今天不用上班～ ☀️' }
-      else if (inLunch) { label = '距离下班'; status = '午休中 😴'; greeting = '午休时间，好好休息' }
+      else if (inLunch) {
+        const lunchEndMin = sched.lunchEnd.h * 60 + sched.lunchEnd.m
+        remSecs = (lunchEndMin - cur) * 60
+        label = '午休剩余'; status = '午休中 😴'; greeting = '午休时间，好好休息'
+      }
       else if (!isWork && remSecs > 0) { label = '距离上班'; status = '休息中 😴'; greeting = '还没到上班时间' }
       else if (isWork) { label = '距离下班'; status = '摸鱼中 🐟' }
       else { label = '已经下班'; status = '自由时间 🎉'; greeting = '下班快乐！' }
