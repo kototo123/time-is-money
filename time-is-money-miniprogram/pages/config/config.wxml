@@ -9,14 +9,14 @@
       <view class="radio-item {{salaryType === 'HOURLY' ? 'active' : ''}}" data-type="HOURLY" bindtap="setType">时薪</view>
     </view>
     <view class="row-fields">
-      <input wx:if="{{salaryType === 'MONTHLY'}}" class="input" type="digit" value="{{monthlySalary}}" bindinput="onInput" data-field="monthlySalary" placeholder="月薪金额" />
-      <input wx:if="{{salaryType === 'HOURLY'}}" class="input" type="digit" value="{{hourlyRate}}" bindinput="onInput" data-field="hourlyRate" placeholder="时薪金额" />
-      <view class="field-group">
+      <input wx:if="{{salaryType === 'MONTHLY'}}" class="input" style="flex:0.6" type="digit" value="{{monthlySalary}}" bindinput="onInput" data-field="monthlySalary" placeholder="月薪金额" />
+      <input wx:if="{{salaryType === 'HOURLY'}}" class="input" style="flex:0.6" type="digit" value="{{hourlyRate}}" bindinput="onInput" data-field="hourlyRate" placeholder="时薪金额" />
+      <view class="field-group" style="flex:0.5">
         <text class="field-label-sm">每天</text>
         <input class="input-sm" type="digit" value="{{dailyWorkHours}}" bindinput="onInput" data-field="dailyWorkHours" placeholder="8" />
         <text class="field-unit">h</text>
       </view>
-      <view class="field-group">
+      <view class="field-group" style="flex:1.2">
         <text class="field-label-sm">工作日</text>
         <view class="input-sm cal-btn" bindtap="openCal">
           <text>{{workDaysLabel}}</text>
