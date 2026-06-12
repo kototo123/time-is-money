@@ -13,7 +13,9 @@ function setToWorkDays(set) {
 
 function workDaysLabel(str) {
   if (!str) return '点击设置'
-  return str.split(',').map(n => weekdayNames[parseInt(n) - 1]).filter(Boolean).join(' ')
+  const names = str.split(',').map(n => weekdayNames[parseInt(n) - 1]).filter(Boolean)
+  if (names.length <= 5) return names.join(' ')
+  return names.slice(0, 5).join(' ') + '..'
 }
 
 function parseOverrides(str) {

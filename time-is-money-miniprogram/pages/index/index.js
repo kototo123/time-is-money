@@ -261,12 +261,17 @@ Page({
       const remSecs = data.remainingSeconds
       const perSec = parseFloat(data.perSecond) || 0
       const restDay = data.isRestDay || false
+      const sched = this.data.workSchedule
+      const now = new Date()
+      const cur = now.getHours() * 60 + now.getMinutes()
+      const inLunch = sched && cur >= sched.lunchStart.m && cur < sched.lunchEnd.m
       let label, status, greeting
       if (restDay) { label = '今天休息'; status = '休息日 🏖️'; greeting = '今天不用上班～ ☀️' }
+      else if (inLunch) { label = '距离下班'; status = '午休中 😴'; greeting = '午休时间，好好休息' }
       else if (!isWork && remSecs > 0) { label = '距离上班'; status = '休息中 😴'; greeting = '还没到上班时间' }
       else if (isWork) { label = '距离下班'; status = '摸鱼中 🐟' }
       else { label = '已经下班'; status = '自由时间 🎉'; greeting = '下班快乐！' }
-      if (!greeting) greeting = getGreeting(this.data.workSchedule)
+      if (!greeting) greeting = getGreeting(sched)
 
       const dp = getDp()
       const earnedNum = parseFloat(data.todayEarned) || 0
