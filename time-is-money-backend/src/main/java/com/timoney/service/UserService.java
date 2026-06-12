@@ -68,22 +68,21 @@ public class UserService {
                 .eq(UserConfig::getUserId, userId);
         UserConfig config = configMapper.selectOne(wrapper);
         if (config != null) {
-            try {
-                UserPrefs prefs = prefsMapper.selectById(userId);
-                if (prefs != null) {
-                    config.setWorkDays(prefs.getWorkDays());
-                    config.setWorkDateOverrides(prefs.getWorkDateOverrides());
-                } else {
-                    fallbackWorkDays(config);
-                }
-            } catch (Exception e) {
-                fallbackWorkDays(config);
-            }
+            loadWorkDays(userId, config);
         }
         return config;
     }
 
-    private void fallbackWorkDays(UserConfig config) {
+    private void loadWorkDays(Long userId, UserConfig config) {
+        // Try user_prefs first, fallback to workDaysPerWeek
+        try {
+            UserPrefs prefs = prefsMapper.selectById(userId);
+            if (prefs != null && prefs.getWorkDays() != null && !prefs.getWorkDays().isBlank()) {
+                config.setWorkDays(prefs.getWorkDays());
+                config.setWorkDateOverrides(prefs.getWorkDateOverrides());
+                return;
+            }
+        } catch (Exception ignored) {}
         int wd = config.getWorkDaysPerWeek() != null ? config.getWorkDaysPerWeek() : 5;
         config.setWorkDays(String.join(",", java.util.stream.IntStream.rangeClosed(1, wd).mapToObj(String::valueOf).toArray(String[]::new)));
     }
