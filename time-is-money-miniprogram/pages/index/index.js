@@ -264,12 +264,11 @@ Page({
       const sched = this.data.workSchedule
       const now = new Date()
       const cur = now.getHours() * 60 + now.getMinutes()
-      const inLunch = sched && cur >= sched.lunchStart.m && cur < sched.lunchEnd.m
+      const inLunch = sched && cur >= toMin(sched.lunchStart) && cur < toMin(sched.lunchEnd)
       let label, status, greeting
       if (restDay) { label = '今天休息'; status = '休息日 🏖️'; greeting = '今天不用上班～ ☀️' }
       else if (inLunch) {
-        const lunchEndMin = sched.lunchEnd.h * 60 + sched.lunchEnd.m
-        remSecs = (lunchEndMin - cur) * 60
+        remSecs = (toMin(sched.lunchEnd) - cur) * 60
         label = '午休剩余'; status = '午休中 😴'; greeting = '午休时间，好好休息'
       }
       else if (!isWork && remSecs > 0) { label = '距离上班'; status = '休息中 😴'; greeting = '还没到上班时间' }
