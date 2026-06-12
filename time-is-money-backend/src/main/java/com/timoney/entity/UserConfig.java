@@ -1,6 +1,7 @@
 package com.timoney.entity;
 
 import com.baomidou.mybatisplus.annotation.*;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -14,9 +15,13 @@ public class UserConfig {
     private BigDecimal monthlySalary;
     private BigDecimal hourlyRate;
     private BigDecimal dailyWorkHours;
+    @JsonFormat(pattern = "HH:mm:ss")
     private LocalTime workStartTime;
+    @JsonFormat(pattern = "HH:mm:ss")
     private LocalTime workEndTime;
+    @JsonFormat(pattern = "HH:mm:ss")
     private LocalTime lunchStart;
+    @JsonFormat(pattern = "HH:mm:ss")
     private LocalTime lunchEnd;
     private Integer workDaysPerWeek;
     @TableField(exist = false)
@@ -24,9 +29,11 @@ public class UserConfig {
     @TableField(exist = false)
     private String workDateOverrides;
 
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     @TableField(fill = FieldFill.INSERT)
     private LocalDateTime createdAt;
 
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     @TableField(fill = FieldFill.INSERT_UPDATE)
     private LocalDateTime updatedAt;
 
