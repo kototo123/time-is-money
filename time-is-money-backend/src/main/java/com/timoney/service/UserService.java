@@ -67,8 +67,10 @@ public class UserService {
             List<UserConfig> list = configMapper.selectList(wrapper);
             if (!list.isEmpty()) {
                 UserConfig config = list.get(0);
-                int wd = config.getWorkDaysPerWeek() != null ? config.getWorkDaysPerWeek() : 5;
-                config.setWorkDays(String.valueOf(wd));
+                if (config.getWorkDays() == null || config.getWorkDays().isBlank()) {
+                    int wd = config.getWorkDaysPerWeek() != null ? config.getWorkDaysPerWeek() : 5;
+                    config.setWorkDays(String.valueOf(wd));
+                }
                 return config;
             }
         } catch (Exception ignored) {}
@@ -93,6 +95,8 @@ public class UserService {
         config.setLunchStart(dto.getLunchStart());
         config.setLunchEnd(dto.getLunchEnd());
         config.setWorkDaysPerWeek(dto.getWorkDaysPerWeek());
+        config.setWorkDays(normalizeWorkDays(dto.getWorkDays(), dto.getWorkDaysPerWeek()));
+        config.setWorkDateOverrides(dto.getWorkDateOverrides());
 
         if (config.getId() == null) {
             configMapper.insert(config);
@@ -279,5 +283,17 @@ public class UserService {
             record.setIsWorkday(isWorkday);
             dailyRecordMapper.updateById(record);
         }
+    }
+
+    private String normalizeWorkDays(String workDays, Integer workDaysPerWeek) {
+        if (workDays != null && workDays.contains(",")) return workDays;
+        if (workDays != null && !workDays.isBlank()) {
+            try {
+                int n = Integer.parseInt(workDays.trim());
+                if (n <= 7) return String.join(",", java.util.stream.IntStream.rangeClosed(1, n).mapToObj(String::valueOf).toArray(String[]::new));
+            } catch (NumberFormatException ignored) {}
+        }
+        int wd = workDaysPerWeek != null ? workDaysPerWeek : 5;
+        return String.join(",", java.util.stream.IntStream.rangeClosed(1, wd).mapToObj(String::valueOf).toArray(String[]::new));
     }
 }

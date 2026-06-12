@@ -24,9 +24,7 @@ public class UserConfig {
     @JsonFormat(pattern = "HH:mm:ss")
     private LocalTime lunchEnd;
     private Integer workDaysPerWeek;
-    @TableField(exist = false)
     private String workDays;
-    @TableField(exist = false)
     private String workDateOverrides;
 
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
