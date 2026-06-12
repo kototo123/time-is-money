@@ -51,7 +51,7 @@ function getGreeting(config) {
   const start = toMin(config.workStart), end = toMin(config.workEnd)
   const lunchS = toMin(config.lunchStart), lunchE = toMin(config.lunchEnd)
   if (cur < start) return '还没到上班时间，早安'
-  if (cur >= lunchS && cur < lunchE) return '午休时间，好好休息'
+  if (cur >= lunchS && cur < lunchE) return '小憩时刻 ☕'
   if (cur >= end) return ''
   if (cur >= end - 120) return '胜利在望！'
   if (cur < lunchS) return '上午好，摸鱼要低调'
@@ -268,8 +268,9 @@ Page({
       let label, status, greeting
       if (restDay) { label = '今天休息'; status = '休息日 🏖️'; greeting = '今天不用上班～ ☀️' }
       else if (inLunch) {
-        remSecs = (toMin(sched.lunchEnd) - cur) * 60
-        label = '午休剩余'; status = '午休中 😴'; greeting = '午休时间，好好休息'
+        const end = new Date(); end.setHours(sched.lunchEnd.h, sched.lunchEnd.m, 0, 0)
+        remSecs = Math.max(0, Math.floor((end - now) / 1000))
+        label = '午休剩余'; status = '小憩中 😴'; greeting = '小憩时刻 ☕'
       }
       else if (!isWork && remSecs > 0) { label = '距离上班'; status = '休息中 😴'; greeting = '还没到上班时间' }
       else if (isWork) { label = '距离下班'; status = '摸鱼中 🐟' }
