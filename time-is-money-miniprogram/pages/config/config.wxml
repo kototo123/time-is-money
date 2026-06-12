@@ -44,6 +44,20 @@
         </picker>
       </view>
     </view>
+    <view class="row-fields" style="margin-top: 16rpx;">
+      <view class="field-group">
+        <text class="field-label-sm">午休开始</text>
+        <picker mode="time" value="{{lunchStart}}" bindchange="onTimeChange" data-field="lunchStart">
+          <view class="input-sm picker-sm">{{lunchStart || '12:00'}}</view>
+        </picker>
+      </view>
+      <view class="field-group">
+        <text class="field-label-sm">午休结束</text>
+        <picker mode="time" value="{{lunchEnd}}" bindchange="onTimeChange" data-field="lunchEnd">
+          <view class="input-sm picker-sm">{{lunchEnd || '13:00'}}</view>
+        </picker>
+      </view>
+    </view>
   </view>
 
   <view class="section">
