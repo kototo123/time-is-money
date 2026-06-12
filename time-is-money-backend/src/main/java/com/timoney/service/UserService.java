@@ -6,11 +6,9 @@ import com.timoney.dto.EarningsDTO;
 import com.timoney.entity.DailyRecord;
 import com.timoney.entity.User;
 import com.timoney.entity.UserConfig;
-import com.timoney.entity.UserPrefs;
 import com.timoney.mapper.DailyRecordMapper;
 import com.timoney.mapper.UserConfigMapper;
 import com.timoney.mapper.UserMapper;
-import com.timoney.mapper.UserPrefsMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,13 +25,11 @@ public class UserService {
     private final UserMapper userMapper;
     private final UserConfigMapper configMapper;
     private final DailyRecordMapper dailyRecordMapper;
-    private final UserPrefsMapper prefsMapper;
 
-    public UserService(UserMapper userMapper, UserConfigMapper configMapper, DailyRecordMapper dailyRecordMapper, UserPrefsMapper prefsMapper) {
+    public UserService(UserMapper userMapper, UserConfigMapper configMapper, DailyRecordMapper dailyRecordMapper) {
         this.userMapper = userMapper;
         this.configMapper = configMapper;
         this.dailyRecordMapper = dailyRecordMapper;
-        this.prefsMapper = prefsMapper;
     }
 
     @Transactional
@@ -68,23 +64,10 @@ public class UserService {
                 .eq(UserConfig::getUserId, userId);
         UserConfig config = configMapper.selectOne(wrapper);
         if (config != null) {
-            loadWorkDays(userId, config);
+            int wd = config.getWorkDaysPerWeek() != null ? config.getWorkDaysPerWeek() : 5;
+            config.setWorkDays(String.valueOf(wd));
         }
         return config;
-    }
-
-    private void loadWorkDays(Long userId, UserConfig config) {
-        // Try user_prefs first, fallback to workDaysPerWeek
-        try {
-            UserPrefs prefs = prefsMapper.selectById(userId);
-            if (prefs != null && prefs.getWorkDays() != null && !prefs.getWorkDays().isBlank()) {
-                config.setWorkDays(prefs.getWorkDays());
-                config.setWorkDateOverrides(prefs.getWorkDateOverrides());
-                return;
-            }
-        } catch (Exception ignored) {}
-        int wd = config.getWorkDaysPerWeek() != null ? config.getWorkDaysPerWeek() : 5;
-        config.setWorkDays(String.join(",", java.util.stream.IntStream.rangeClosed(1, wd).mapToObj(String::valueOf).toArray(String[]::new)));
     }
 
     @Transactional
@@ -112,89 +95,67 @@ public class UserService {
             configMapper.updateById(config);
         }
 
-        if (dto.getWorkDays() != null) {
-            try {
-                UserPrefs prefs = prefsMapper.selectById(userId);
-                if (prefs == null) {
-                    prefs = new UserPrefs();
-                    prefs.setUserId(userId);
-                    prefs.setWorkDays(dto.getWorkDays());
-                    prefs.setWorkDateOverrides(dto.getWorkDateOverrides());
-                    prefsMapper.insert(prefs);
-                } else {
-                    prefs.setWorkDays(dto.getWorkDays());
-                    prefs.setWorkDateOverrides(dto.getWorkDateOverrides());
-                    prefsMapper.updateById(prefs);
-                }
-            } catch (Exception e) {
-                // user_prefs is unavailable; skip
-            }
-        }
+        config.setWorkDaysPerWeek(dto.getWorkDaysPerWeek());
     }
 
     public EarningsDTO getTodayEarnings(Long userId) {
-        try {
-            UserConfig config = getConfig(userId);
-            if (config == null) {
-                return new EarningsDTO(BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, 0L, false, BigDecimal.ZERO);
-            }
-
-            ZoneId shanghai = ZoneId.of("Asia/Shanghai");
-            LocalDate today = LocalDate.now(shanghai);
-            LocalTime now = LocalTime.now(shanghai);
-            LocalTime start = config.getWorkStartTime();
-            LocalTime end = config.getWorkEndTime();
-
-            if (start == null || end == null) {
-                return new EarningsDTO(BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, 0L, false, BigDecimal.ZERO);
-            }
-
-            boolean isRestDay = isTodayRestDay(today, config.getWorkDays(), config.getWorkDateOverrides());
-
-            if (isRestDay) {
-                BigDecimal dailyTotal = calcDailyTotal(config);
-                EarningsDTO dto = new EarningsDTO(BigDecimal.ZERO, dailyTotal, BigDecimal.ZERO, 0L, false, BigDecimal.ZERO);
-                dto.setIsRestDay(true);
-                return dto;
-            }
-
-            BigDecimal dailyTotal = calcDailyTotal(config);
-            long totalWorkSeconds = calcTotalWorkSeconds(config);
-            BigDecimal perSecond = totalWorkSeconds > 0
-                    ? dailyTotal.divide(new BigDecimal(totalWorkSeconds), 6, RoundingMode.HALF_UP)
-                    : BigDecimal.ZERO;
-
-            long remainingSeconds;
-            BigDecimal earned;
-
-            if (now.isBefore(start)) {
-                remainingSeconds = Duration.between(now, start).getSeconds();
-                earned = BigDecimal.ZERO;
-            } else if (now.isAfter(end)) {
-                remainingSeconds = 0;
-                earned = dailyTotal;
-            } else {
-                long elapsed = calcElapsedWorkSeconds(config, start, now);
-                earned = perSecond.multiply(new BigDecimal(elapsed)).setScale(4, RoundingMode.HALF_UP);
-                remainingSeconds = totalWorkSeconds - elapsed;
-            }
-
-            boolean isInLunch = isDuringLunch(config, now);
-            boolean isWorkTime = !now.isBefore(start) && !now.isAfter(end) && !isInLunch;
-
-            BigDecimal percentage = dailyTotal.compareTo(BigDecimal.ZERO) > 0
-                    ? earned.multiply(new BigDecimal("100")).divide(dailyTotal, 2, RoundingMode.HALF_UP)
-                    : BigDecimal.ZERO;
-
-            updateDailyRecord(userId, today, earned, config);
-
-            EarningsDTO dto = new EarningsDTO(earned, dailyTotal, percentage, remainingSeconds, isWorkTime, perSecond);
-            dto.setIsRestDay(false);
-            return dto;
-        } catch (Exception e) {
-            // Fallback on any error
+        UserConfig config = getConfig(userId);
+        if (config == null) {
             return new EarningsDTO(BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, 0L, false, BigDecimal.ZERO);
         }
+
+        ZoneId shanghai = ZoneId.of("Asia/Shanghai");
+        LocalDate today = LocalDate.now(shanghai);
+        LocalTime now = LocalTime.now(shanghai);
+        LocalTime start = config.getWorkStartTime();
+        LocalTime end = config.getWorkEndTime();
+
+        if (start == null || end == null) {
+            return new EarningsDTO(BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, 0L, false, BigDecimal.ZERO);
+        }
+
+        boolean isRestDay = isTodayRestDay(today, config.getWorkDays(), config.getWorkDateOverrides());
+
+        if (isRestDay) {
+            BigDecimal dailyTotal = calcDailyTotal(config);
+            EarningsDTO dto = new EarningsDTO(BigDecimal.ZERO, dailyTotal, BigDecimal.ZERO, 0L, false, BigDecimal.ZERO);
+            dto.setIsRestDay(true);
+            return dto;
+        }
+
+        BigDecimal dailyTotal = calcDailyTotal(config);
+        long totalWorkSeconds = calcTotalWorkSeconds(config);
+        BigDecimal perSecond = totalWorkSeconds > 0
+                ? dailyTotal.divide(new BigDecimal(totalWorkSeconds), 6, RoundingMode.HALF_UP)
+                : BigDecimal.ZERO;
+
+        long remainingSeconds;
+        BigDecimal earned;
+
+        if (now.isBefore(start)) {
+            remainingSeconds = Duration.between(now, start).getSeconds();
+            earned = BigDecimal.ZERO;
+        } else if (now.isAfter(end)) {
+            remainingSeconds = 0;
+            earned = dailyTotal;
+        } else {
+            long elapsed = calcElapsedWorkSeconds(config, start, now);
+            earned = perSecond.multiply(new BigDecimal(elapsed)).setScale(4, RoundingMode.HALF_UP);
+            remainingSeconds = totalWorkSeconds - elapsed;
+        }
+
+        boolean isInLunch = isDuringLunch(config, now);
+        boolean isWorkTime = !now.isBefore(start) && !now.isAfter(end) && !isInLunch;
+
+        BigDecimal percentage = dailyTotal.compareTo(BigDecimal.ZERO) > 0
+                ? earned.multiply(new BigDecimal("100")).divide(dailyTotal, 2, RoundingMode.HALF_UP)
+                : BigDecimal.ZERO;
+
+        updateDailyRecord(userId, today, earned, config);
+
+        EarningsDTO dto = new EarningsDTO(earned, dailyTotal, percentage, remainingSeconds, isWorkTime, perSecond);
+        dto.setIsRestDay(false);
+        return dto;
     }
 
     private boolean isDuringLunch(UserConfig config, LocalTime now) {
